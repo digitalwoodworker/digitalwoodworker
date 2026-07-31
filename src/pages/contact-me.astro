@@ -1,0 +1,74 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact Me | DigitalWoodworker</title>
+    <meta name="description" content="Contact DigitalWoodworker for custom woodworking commissions and questions." />
+  </head>
+  <body class="bg-white text-slate-900">
+    <Header />
+
+    <main class="mx-auto max-w-6xl px-6 py-20">
+      <section class="mb-16 text-center">
+        <p class="text-sm uppercase tracking-[0.4em] text-amber-500">Contact Me</p>
+        <h1 class="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Get in touch with DigitalWoodworker.</h1>
+        <p class="mx-auto mt-6 max-w-2xl text-base leading-8 text-slate-600">
+          Whether you want a custom piece, have a question about materials, or want to start a commission, use the form below or connect via Instagram.
+        </p>
+      </section>
+
+      <div class="grid gap-12 lg:grid-cols-[1.2fr_0.8fr]">
+        <form class="space-y-6 rounded-[2rem] border border-slate-200 bg-slate-50 p-10 shadow-sm shadow-slate-900/5" method="POST" action="#">
+          <div>
+            <label class="mb-3 block text-sm font-semibold text-slate-900" for="name">Name</label>
+            <input id="name" name="name" type="text" required class="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-200" />
+          </div>
+          <div>
+            <label class="mb-3 block text-sm font-semibold text-slate-900" for="email">Email</label>
+            <input id="email" name="email" type="email" required class="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-200" />
+          </div>
+          <div>
+            <label class="mb-3 block text-sm font-semibold text-slate-900" for="subject">Subject</label>
+            <input id="subject" name="subject" type="text" class="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-200" />
+          </div>
+          <div>
+            <label class="mb-3 block text-sm font-semibold text-slate-900" for="message">Message</label>
+            <textarea id="message" name="message" rows="6" required class="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-200"></textarea>
+          </div>
+          <button type="submit" class="inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-6 py-4 text-sm font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-slate-800">
+            Send message
+          </button>
+        </form>
+
+        <aside class="space-y-8 rounded-[2rem] border border-slate-200 bg-slate-950 p-10 text-slate-100 shadow-xl shadow-slate-950/10">
+          <div>
+            <p class="text-sm uppercase tracking-[0.4em] text-amber-400">Reach out</p>
+            <p class="mt-4 text-lg font-semibold">Contact details</p>
+            <p class="mt-4 text-sm leading-7 text-slate-300">Email: hello@digitalwoodworker.com</p>
+            <p class="mt-2 text-sm leading-7 text-slate-300">Phone: (555) 123-4567</p>
+            <p class="mt-2 text-sm leading-7 text-slate-300">Hours: Mon–Fri · 9:00–17:00</p>
+          </div>
+          <div>
+            <p class="text-sm uppercase tracking-[0.4em] text-amber-400">Social</p>
+            <div class="mt-4 flex items-center gap-3">
+              <a href="https://www.instagram.com/" target="_blank" rel="noreferrer" class="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-3 text-slate-100 transition hover:bg-white/10">
+                <svg class="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.17.056 1.97.24 2.428.402a4.92 4.92 0 0 1 1.773 1.027 4.92 4.92 0 0 1 1.027 1.773c.162.458.346 1.258.402 2.428.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.056 1.17-.24 1.97-.402 2.428a4.92 4.92 0 0 1-1.027 1.773 4.92 4.92 0 0 1-1.773 1.027c-.458.162-1.258.346-2.428.402-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.17-.056-1.97-.24-2.428-.402a4.92 4.92 0 0 1-1.773-1.027 4.92 4.92 0 0 1-1.027-1.773c-.162-.458-.346-1.258-.402-2.428C2.175 15.747 2.163 15.367 2.163 12s.012-3.584.07-4.85c.056-1.17.24-1.97.402-2.428a4.92 4.92 0 0 1 1.027-1.773 4.92 4.92 0 0 1 1.773-1.027c.458-.162 1.258-.346 2.428-.402C8.416 2.175 8.796 2.163 12 2.163zm0 1.838c-3.17 0-3.548.012-4.796.069-.959.043-1.48.2-1.824.334-.46.188-.788.414-1.135.76a2.846 2.846 0 0 0-.76 1.135c-.134.344-.291.865-.334 1.824-.057 1.248-.069 1.626-.069 4.796s.012 3.548.069 4.796c.043.959.2 1.48.334 1.824.188.46.414.788.76 1.135.347.347.675.572 1.135.76.344.134.865.291 1.824.334 1.248.057 1.626.069 4.796.069s3.548-.012 4.796-.069c.959-.043 1.48-.2 1.824-.334.46-.188.788-.414 1.135-.76a2.846 2.846 0 0 0 .76-1.135c.134-.344.291-.865.334-1.824.057-1.248.069-1.626.069-4.796s-.012-3.548-.069-4.796c-.043-.959-.2-1.48-.334-1.824a2.846 2.846 0 0 0-.76-1.135 2.846 2.846 0 0 0-1.135-.76c-.344-.134-.865-.291-1.824-.334-1.248-.057-1.626-.069-4.796-.069z" />
+                  <path d="M12 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zm0 10.162a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
+                </svg>
+                Instagram
+              </a>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+    <Footer />
+  </body>
+</html>

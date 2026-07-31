@@ -1,0 +1,124 @@
+---
+import fs from 'fs';
+import path from 'path';
+
+const slideshowDir = path.resolve(process.cwd(), 'public', 'Slideshow');
+let images = [];
+
+try {
+  images = fs
+    .readdirSync(slideshowDir)
+    .filter((file) => /\.(jpe?g|png|webp|avif|gif)$/i.test(file))
+    .sort();
+} catch (error) {
+  console.error('Slideshow load error:', error.message);
+  images = [];
+}
+---
+
+<section class="slideshow-section relative overflow-hidden bg-slate-950 text-white">
+  <div class="mx-auto max-w-7xl px-6 py-8">
+    <div class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-4 shadow-2xl shadow-slate-950/40">
+      <div class="relative overflow-hidden rounded-[1.75rem] h-[520px] w-full">
+        {images.length ? (
+          <>
+            {images.map((image, index) => (
+              <div class={`slideshow-slide absolute inset-0 opacity-0 transition-opacity duration-1000 ${index === 0 ? 'opacity-100' : ''}`}>
+                <img
+                  src={`./Slideshow/${encodeURIComponent(image)}`}
+                  alt={`Slide ${index + 1}`}
+                  class="h-full w-full object-cover"
+                  loading="eager"
+                />
+              </div>
+            ))}
+            <button type="button" class="slideshow-prev absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-slate-900/70 p-3 text-white transition hover:bg-slate-800 focus:outline-none" aria-label="Previous slide">
+              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M12.707 15.707a1 1 0 0 1-1.414 0L6.586 11l4.707-4.707a1 1 0 0 1 1.414 1.414L9.414 11l3.293 3.293a1 1 0 0 1 0 1.414z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <button type="button" class="slideshow-next absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-slate-900/70 p-3 text-white transition hover:bg-slate-800 focus:outline-none" aria-label="Next slide">
+              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M7.293 4.293a1 1 0 0 1 1.414 0L13.414 9l-4.707 4.707a1 1 0 0 1-1.414-1.414L10.586 9 7.293 5.707a1 1 0 0 1 0-1.414z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <div class="pointer-events-none absolute inset-x-0 bottom-5 flex justify-center gap-2">
+              {images.map((_, index) => (
+                <button type="button" class="slideshow-dot h-2.5 w-2.5 rounded-full bg-white/50 opacity-75 transition focus:outline-none" aria-label={`Show slide ${index + 1}`}></button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div class="flex h-[320px] items-center justify-center bg-slate-800 text-center text-sm text-slate-300 sm:h-[420px]">
+            Place slideshow images in <code class="rounded bg-slate-950 px-2 py-1 text-xs text-slate-200">public/Slideshow</code> to show them here.
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    document.addEventListener('DOMContentLoaded', function () {
+      const slides = document.querySelectorAll('.slideshow-slide');
+      const dots = document.querySelectorAll('.slideshow-dot');
+      const prev = document.querySelector('.slideshow-prev');
+      const next = document.querySelector('.slideshow-next');
+      const container = document.querySelector('.slideshow-section');
+      if (!slides.length) return;
+      let current = 0;
+      let timer = null;
+
+      const setActive = (index) => {
+        slides[current].classList.remove('opacity-100');
+        slides[current].classList.add('opacity-0');
+        dots[current].classList.remove('opacity-100');
+        dots[current].classList.add('opacity-75');
+        current = index;
+        slides[current].classList.add('opacity-100');
+        slides[current].classList.remove('opacity-0');
+        dots[current].classList.add('opacity-100');
+        dots[current].classList.remove('opacity-75');
+      };
+
+      const start = () => {
+        timer = setInterval(() => {
+          setActive((current + 1) % slides.length);
+        }, 5000);
+      };
+
+      const stop = () => {
+        if (timer) {
+          clearInterval(timer);
+          timer = null;
+        }
+      };
+
+      dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+          setActive(index);
+          stop();
+          start();
+        });
+      });
+
+      prev.addEventListener('click', () => {
+        setActive((current - 1 + slides.length) % slides.length);
+        stop();
+        start();
+      });
+
+      next.addEventListener('click', () => {
+        setActive((current + 1) % slides.length);
+        stop();
+        start();
+      });
+
+      if (container) {
+        container.addEventListener('mouseenter', stop);
+        container.addEventListener('mouseleave', start);
+      }
+
+      start();
+    });
+  </script>
+</section>

@@ -70,7 +70,7 @@ const navLinks = [
             ) : null}
           </div>
           {link.sublinks ? (
-            <div class="pointer-events-none absolute left-1/2 top-full z-40 hidden w-[18rem] -translate-x-1/2 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/5" data-dropdown>
+            <div class="absolute left-1/2 top-full z-40 hidden w-[18rem] -translate-x-1/2 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/5" data-dropdown>
               <div class="space-y-1">
                 {link.sublinks.map((sub) => (
                   <a class="block rounded-3xl px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50" href={withBase(sub.href)}>
@@ -121,7 +121,6 @@ const navLinks = [
     const dropdown = item.querySelector('[data-dropdown]');
     const toggle = item.querySelector('.nav-toggle');
     dropdown?.classList.add('hidden');
-    dropdown?.classList.remove('pointer-events-auto');
     toggle?.setAttribute('aria-expanded', 'false');
     toggle?.querySelector('[data-chevron]')?.classList.remove('rotate-180');
   }
@@ -143,7 +142,6 @@ const navLinks = [
         });
 
         dropdown.classList.toggle('hidden', isOpen);
-        dropdown.classList.toggle('pointer-events-auto', !isOpen);
         toggle.setAttribute('aria-expanded', String(!isOpen));
         toggle.querySelector('[data-chevron]')?.classList.toggle('rotate-180', !isOpen);
       });

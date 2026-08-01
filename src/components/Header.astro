@@ -23,9 +23,10 @@ const navLinks = [
     label: 'About the Craft',
     href: '/about-the-craft',
     sublinks: [
-      { label: 'Materials', href: '/about-the-craft#materials' },
-      { label: 'Finishes', href: '/about-the-craft#finishes' },
-      { label: 'Techniques', href: '/about-the-craft#techniques' },
+      { label: 'About Me', href: '/about-me' },
+      { label: 'Why Me', href: '/why-me' },
+      { label: 'Wood Selection', href: '/wood-selection' },
+      { label: 'Behind the scenes', href: '/behind-the-scenes' },
     ],
   },
   { label: 'Contact Me', href: '/contact-me' },
@@ -35,9 +36,12 @@ const navLinks = [
 <nav class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
   <div class="mx-auto max-w-7xl px-6 py-4">
     <div class="flex items-center justify-between gap-4">
-      <a class="inline-flex items-center gap-3 text-[200%] font-extrabold uppercase tracking-[0.34em] text-amber-600" href="/">
-        <span class="inline-block h-2.5 w-2.5 rounded-full bg-amber-500"></span>
-        DigitalWoodworker
+      <a class="inline-flex w-full items-center justify-between gap-4 text-[110%] font-extrabold uppercase tracking-[0.34em] text-amber-600" href="/">
+        <span class="inline-flex items-center gap-3">
+          <span class="inline-block h-2.5 w-2.5 rounded-full bg-amber-500"></span>
+          DigitalWoodworker
+        </span>
+        <span class="max-w-none whitespace-nowrap text-right text-xl italic normal-case tracking-wide text-slate-500 tagline-cursive">......because the smallest details make the biggest impact</span>
       </a>
       <button class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-900 transition hover:bg-slate-100 md:hidden" type="button" aria-label="Open menu" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
         <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">

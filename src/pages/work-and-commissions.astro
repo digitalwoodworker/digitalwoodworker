@@ -2,6 +2,39 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const publicDir = fileURLToPath(new URL('../../public', import.meta.url));
+const cardFolders = {
+  'scale-models': 'Scale-Models',
+  'wood-turning': 'Wood-Turning',
+  boxes: 'Boxes',
+  'chess-set': 'Chess-Set',
+  intarsia: 'Intarsia',
+  clocks: 'Clocks',
+};
+
+function randomCardImage(folder) {
+  const folderPath = path.join(publicDir, folder);
+  if (!fs.existsSync(folderPath)) return null;
+  const files = fs.readdirSync(folderPath).filter((file) => /\.(jpe?g|png|webp|gif|svg)$/i.test(file));
+  if (!files.length) return null;
+  return `/${folder}/${encodeURIComponent(files[Math.floor(Math.random() * files.length)])}`;
+}
+
+const cards = [
+  { href: '/scale-models', title: 'Scale Models', description: 'Browse precision woodworking for miniature builds, display models, and detailed replicas.' },
+  { href: '/wood-turning', title: 'Wood Turning', description: 'Discover turned wood vessels, bowls, and specialty pieces crafted with fine form and finish.' },
+  { href: '/boxes', title: 'Boxes', description: 'Explore custom box designs for keepsakes, storage, and presentation with thoughtful joinery.' },
+  { href: '/chess-set', title: 'Chess Set', description: 'View elegant game pieces and boards made from premium woods and refined detailing.' },
+  { href: '/intarsia', title: 'Intarsia', description: 'See decorative inlay and wood art that combines color, texture, and pattern in striking designs.' },
+  { href: '/clocks', title: 'Clocks', description: 'Discover timepieces that pair precise mechanics with handcrafted wood faces and finishes.' },
+].map((card) => ({
+  ...card,
+  image: randomCardImage(cardFolders[card.href.slice(1)]),
+}));
 ---
 
 <html lang="en">
@@ -22,19 +55,20 @@ import Footer from '../components/Footer.astro';
         </p>
       </section>
 
-      <div class="grid gap-8 md:grid-cols-3">
-        <a href="/work-and-commissions#custom-tables" class="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-8 text-center transition hover:border-slate-300 hover:bg-white">
-          <h2 class="text-xl font-semibold text-slate-950">Custom Tables</h2>
-          <p class="mt-3 text-sm leading-7 text-slate-600">Placeholder for custom dining and occasional tables.</p>
-        </a>
-        <a href="/work-and-commissions#built-in-projects" class="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-8 text-center transition hover:border-slate-300 hover:bg-white">
-          <h2 class="text-xl font-semibold text-slate-950">Built-in Projects</h2>
-          <p class="mt-3 text-sm leading-7 text-slate-600">Placeholder for shelving, cabinetry, and bespoke installations.</p>
-        </a>
-        <a href="/work-and-commissions#commission-process" class="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-8 text-center transition hover:border-slate-300 hover:bg-white">
-          <h2 class="text-xl font-semibold text-slate-950">Commission Process</h2>
-          <p class="mt-3 text-sm leading-7 text-slate-600">Placeholder for how commissions are planned and delivered.</p>
-        </a>
+      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {cards.map((card) => (
+          <a href={card.href} class="group overflow-hidden rounded-[1.75rem] border border-slate-200 bg-slate-50 transition hover:border-slate-300 hover:bg-white">
+            {card.image ? (
+              <div class="h-48 overflow-hidden bg-slate-100">
+                <img class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]" src={card.image} alt={`${card.title} preview`} />
+              </div>
+            ) : null}
+            <div class="p-8 text-center">
+              <h2 class="text-xl font-semibold text-slate-950">{card.title}</h2>
+              <p class="mt-3 text-sm leading-7 text-slate-600">{card.description}</p>
+            </div>
+          </a>
+        ))}
       </div>
     </main>
     <Footer />

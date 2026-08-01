@@ -37,7 +37,7 @@ const navLinks = [
 ];
 ---
 
-<nav class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
+<nav class="sticky top-0 z-30 overflow-visible border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
   <div class="mx-auto max-w-7xl px-6 py-4">
     <div class="flex items-center justify-between gap-4">
       <a class="inline-flex min-w-0 flex-1 min-h-[4.5rem] items-stretch justify-between gap-4 font-bold uppercase tracking-[0.2em] text-red-500" href={withBase('/')}>
@@ -45,9 +45,9 @@ const navLinks = [
           <span class="inline-block h-2.5 w-2.5 rounded-full bg-amber-500"></span>
           DigitalWoodworker
         </span>
-        <span class="hidden md:inline-flex max-w-none self-end whitespace-nowrap text-right text-xl italic normal-case tracking-wide text-slate-500 tagline-cursive">......because the smallest details make the biggest impact</span>
+        <span class="hidden max-w-[18rem] truncate self-end text-right text-xl italic normal-case tracking-wide text-slate-500 tagline-cursive lg:inline-flex">......because the smallest details make the biggest impact</span>
       </a>
-      <button class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-900 transition hover:bg-slate-100 md:hidden" type="button" aria-label="Open menu" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+      <button id="mobile-menu-toggle" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-900 transition hover:bg-slate-100 md:hidden" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
         <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
@@ -56,17 +56,21 @@ const navLinks = [
 
     <div class="mt-4 hidden items-center justify-center gap-8 border-t border-slate-200/80 pt-4 md:flex">
       {navLinks.map((link) => (
-        <div class="relative group">
-          <a class="inline-flex items-center gap-2 text-sm uppercase tracking-[0.24em] text-slate-900 transition hover:text-amber-700" href={withBase(link.href)}>
-            <span class="font-semibold">{link.label}</span>
+        <div class="relative" data-nav-item>
+          <div class="inline-flex items-center gap-1">
+            <a class="inline-flex items-center gap-2 text-sm uppercase tracking-[0.24em] text-slate-900 transition hover:text-amber-700" href={withBase(link.href)}>
+              <span class="font-semibold">{link.label}</span>
+            </a>
             {link.sublinks ? (
-              <svg class="h-3 w-3 text-slate-500 transition group-hover:text-amber-700" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.939l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.25 8.27a.75.75 0 01-.02-1.06z" clip-rule="evenodd" />
-              </svg>
+              <button type="button" class="nav-toggle rounded-full p-1 text-slate-500 transition hover:text-amber-700" aria-expanded="false" aria-label={`Toggle ${link.label} submenu`}>
+                <svg class="h-3 w-3 transition" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-chevron>
+                  <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.939l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.25 8.27a.75.75 0 01-.02-1.06z" clip-rule="evenodd" />
+                </svg>
+              </button>
             ) : null}
-          </a>
+          </div>
           {link.sublinks ? (
-            <div class="pointer-events-none absolute left-1/2 top-full hidden w-[18rem] -translate-x-1/2 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/5 group-hover:block group-hover:pointer-events-auto">
+            <div class="pointer-events-none absolute left-1/2 top-full z-40 hidden w-[18rem] -translate-x-1/2 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/5" data-dropdown>
               <div class="space-y-1">
                 {link.sublinks.map((sub) => (
                   <a class="block rounded-3xl px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50" href={withBase(sub.href)}>
@@ -81,20 +85,24 @@ const navLinks = [
     </div>
   </div>
 
-  <div id="mobile-menu" class="hidden border-t border-slate-200 bg-white px-6 py-4 md:hidden">
-    <div class="space-y-4">
+  <div id="mobile-menu" class="hidden max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain border-t border-slate-200 bg-white px-6 py-4 md:hidden">
+    <div class="space-y-3 pb-4">
       {navLinks.map((link) => (
-        <div>
-          <a class="flex items-center justify-between rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm uppercase tracking-[0.24em] text-slate-800 transition hover:bg-slate-100" href={withBase(link.href)}>
-            {link.label}
+        <div class="rounded-3xl border border-slate-200 bg-slate-50" data-nav-item>
+          <div class="flex items-center justify-between px-4 py-3">
+            <a class="flex-1 text-sm uppercase tracking-[0.24em] text-slate-800" href={withBase(link.href)}>
+              {link.label}
+            </a>
             {link.sublinks ? (
-              <svg class="h-4 w-4 text-slate-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.939l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.25 8.27a.75.75 0 01-.02-1.06z" clip-rule="evenodd" />
-              </svg>
+              <button type="button" class="nav-toggle ml-2 rounded-full p-1 text-slate-500 transition hover:text-amber-700" aria-expanded="false" aria-label={`Toggle ${link.label} submenu`}>
+                <svg class="h-4 w-4 transition" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-chevron>
+                  <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.939l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.25 8.27a.75.75 0 01-.02-1.06z" clip-rule="evenodd" />
+                </svg>
+              </button>
             ) : null}
-          </a>
+          </div>
           {link.sublinks ? (
-            <div class="mt-2 space-y-1 px-4">
+            <div class="hidden space-y-1 px-4 pb-3" data-dropdown>
               {link.sublinks.map((sub) => (
                 <a class="block rounded-3xl bg-slate-100 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-200" href={withBase(sub.href)}>
                   {sub.label}
@@ -107,3 +115,59 @@ const navLinks = [
     </div>
   </div>
 </nav>
+
+<script>
+  function closeDropdown(item) {
+    const dropdown = item.querySelector('[data-dropdown]');
+    const toggle = item.querySelector('.nav-toggle');
+    dropdown?.classList.add('hidden');
+    dropdown?.classList.remove('pointer-events-auto');
+    toggle?.setAttribute('aria-expanded', 'false');
+    toggle?.querySelector('[data-chevron]')?.classList.remove('rotate-180');
+  }
+
+  function initNavToggles() {
+    const navItems = document.querySelectorAll('[data-nav-item]');
+    navItems.forEach((item) => {
+      const toggle = item.querySelector('.nav-toggle');
+      const dropdown = item.querySelector('[data-dropdown]');
+      if (!toggle || !dropdown) return;
+
+      toggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const isOpen = !dropdown.classList.contains('hidden');
+
+        navItems.forEach((other) => {
+          if (other !== item) closeDropdown(other);
+        });
+
+        dropdown.classList.toggle('hidden', isOpen);
+        dropdown.classList.toggle('pointer-events-auto', !isOpen);
+        toggle.setAttribute('aria-expanded', String(!isOpen));
+        toggle.querySelector('[data-chevron]')?.classList.toggle('rotate-180', !isOpen);
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      navItems.forEach((item) => {
+        if (!item.contains(event.target)) closeDropdown(item);
+      });
+    });
+  }
+
+  function initMobileMenu() {
+    const menuToggle = document.getElementById('mobile-menu-toggle');
+    const menu = document.getElementById('mobile-menu');
+    if (!menuToggle || !menu) return;
+
+    menuToggle.addEventListener('click', () => {
+      const isOpen = !menu.classList.contains('hidden');
+      menu.classList.toggle('hidden', isOpen);
+      menuToggle.setAttribute('aria-expanded', String(!isOpen));
+    });
+  }
+
+  initNavToggles();
+  initMobileMenu();
+</script>

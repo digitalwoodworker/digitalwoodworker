@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const { folderName } = Astro.props;
+const basePath = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL;
 const publicDir = fileURLToPath(new URL('../../public', import.meta.url));
 const galleryPath = path.join(publicDir, folderName);
 const imageFiles = fs.existsSync(galleryPath)
@@ -23,10 +24,10 @@ const galleryImages = imageFiles.sort();
       <div class="mt-10 columns-1 sm:columns-2 xl:columns-3 [column-gap:1.5rem]">
         {galleryImages.map((image) => (
           <article class="inline-block w-full break-inside-avoid overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-lg shadow-slate-900/10 mb-6">
-            <a href={`/${encodeURIComponent(folderName)}/${encodeURIComponent(image)}`} target="_blank" rel="noreferrer" class="block cursor-pointer">
+            <a href={`${basePath}${encodeURIComponent(folderName)}/${encodeURIComponent(image)}`} target="_blank" rel="noreferrer" class="block cursor-pointer">
               <img
                 class="w-full h-auto bg-slate-100 transition duration-300 hover:scale-[1.01]"
-                src={`/${encodeURIComponent(folderName)}/${encodeURIComponent(image)}`}
+                src={`${basePath}${encodeURIComponent(folderName)}/${encodeURIComponent(image)}`}
                 alt={image.replace(/[-_]/g, ' ').replace(/\.[^.]+$/, '')}
               />
             </a>

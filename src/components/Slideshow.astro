@@ -2,17 +2,19 @@
 import fs from 'fs';
 import path from 'path';
 
-const slideshowDir = path.resolve(process.cwd(), 'public', 'Slideshow');
-let images = [];
-
+let slideshowFiles = [];
 try {
-  images = fs
-    .readdirSync(slideshowDir)
-    .filter((file) => /\.(jpe?g|png|webp|avif|gif)$/i.test(file))
-    .sort();
-} catch (error) {
-  console.error('Slideshow load error:', error.message);
-  images = [];
+  const manifestPath = path.join(process.cwd(), 'public', 'slideshow-manifest.json');
+  if (fs.existsSync(manifestPath)) {
+    slideshowFiles = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  } else {
+    const dir = path.join(process.cwd(), 'public', 'Slideshow');
+    if (fs.existsSync(dir)) {
+      slideshowFiles = fs.readdirSync(dir).filter((f) => /\.(jpe?g|png|webp|avif|gif)$/i.test(f)).sort();
+    }
+  }
+} catch (err) {
+  slideshowFiles = [];
 }
 ---
 
@@ -20,19 +22,21 @@ try {
   <div class="mx-auto max-w-7xl px-6 py-8">
     <div class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-4 shadow-2xl shadow-slate-950/40">
       <div class="relative overflow-hidden rounded-[1.75rem] h-[520px] w-full">
-        {images.length ? (
-          <>
-            {images.map((image, index) => (
-              <div class={`slideshow-slide absolute inset-0 opacity-0 transition-opacity duration-1000 ${index === 0 ? 'opacity-100' : ''}`}>
-                <img
-                  src={`./Slideshow/${encodeURIComponent(image)}`}
-                  alt={`Slide ${index + 1}`}
-                  class="h-full w-full object-cover"
-                  loading="eager"
-                />
-              </div>
-            ))}
-            <button type="button" class="slideshow-prev absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-slate-900/70 p-3 text-white transition hover:bg-slate-800 focus:outline-none" aria-label="Previous slide">
+        {slideshowFiles.length ? (
+            <div>
+            <div class="slideshow-slides">
+              {slideshowFiles.map((file, index) => (
+                <div class={`slideshow-slide absolute inset-0 transition-opacity duration-1000 ${index === 0 ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0'}`} data-image={file}>
+                  <img
+                    src={`/Slideshow/${encodeURIComponent(file)}`}
+                    alt={`Slide ${index + 1}`}
+                    class="h-full w-full object-cover will-change-opacity"
+                    loading="eager"
+                  />
+                </div>
+              ))}
+            </div>
+              <button type="button" class="slideshow-prev absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-slate-900/70 p-3 text-white transition hover:bg-slate-800 focus:outline-none" aria-label="Previous slide">
               <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fill-rule="evenodd" d="M12.707 15.707a1 1 0 0 1-1.414 0L6.586 11l4.707-4.707a1 1 0 0 1 1.414 1.414L9.414 11l3.293 3.293a1 1 0 0 1 0 1.414z" clip-rule="evenodd" />
               </svg>
@@ -43,11 +47,11 @@ try {
               </svg>
             </button>
             <div class="pointer-events-none absolute inset-x-0 bottom-5 flex justify-center gap-2">
-              {images.map((_, index) => (
+              {slideshowFiles.map((_, index) => (
                 <button type="button" class="slideshow-dot h-2.5 w-2.5 rounded-full bg-white/50 opacity-75 transition focus:outline-none" aria-label={`Show slide ${index + 1}`}></button>
               ))}
             </div>
-          </>
+          </div>
         ) : (
           <div class="flex h-[320px] items-center justify-center bg-slate-800 text-center text-sm text-slate-300 sm:h-[420px]">
             Place slideshow images in <code class="rounded bg-slate-950 px-2 py-1 text-xs text-slate-200">public/Slideshow</code> to show them here.
@@ -58,32 +62,111 @@ try {
   </div>
 
   <script is:inline>
-    document.addEventListener('DOMContentLoaded', function () {
-      const slides = document.querySelectorAll('.slideshow-slide');
-      const dots = document.querySelectorAll('.slideshow-dot');
-      const prev = document.querySelector('.slideshow-prev');
-      const next = document.querySelector('.slideshow-next');
+    async function initSlideshow() {
       const container = document.querySelector('.slideshow-section');
-      if (!slides.length) return;
+      if (!container) return;
+
+      let slides = Array.from(container.querySelectorAll('.slideshow-slide'));
+      let dots = Array.from(container.querySelectorAll('.slideshow-dot'));
+      const prev = container.querySelector('.slideshow-prev');
+      const next = container.querySelector('.slideshow-next');
+      if (!slides.length || !dots.length) return;
+
       let current = 0;
       let timer = null;
 
-      const setActive = (index) => {
-        slides[current].classList.remove('opacity-100');
-        slides[current].classList.add('opacity-0');
-        dots[current].classList.remove('opacity-100');
-        dots[current].classList.add('opacity-75');
-        current = index;
-        slides[current].classList.add('opacity-100');
-        slides[current].classList.remove('opacity-0');
-        dots[current].classList.add('opacity-100');
-        dots[current].classList.remove('opacity-75');
+      // Preload images to avoid flicker or delayed loads when switching slides
+      const imgs = () => slides.map((s) => s.querySelector('img')).filter(Boolean);
+      const preload = () => {
+        imgs().forEach((img) => {
+          if (!img.complete) {
+            const p = new Image();
+            p.src = img.src;
+          }
+        });
       };
 
-      const start = () => {
-        timer = setInterval(() => {
-          setActive((current + 1) % slides.length);
-        }, 5000);
+      // Fetch the build-time manifest and rebuild slides/dots when it changes
+      const refreshFiles = async () => {
+        try {
+          const res = await fetch('/slideshow-manifest.json');
+          if (!res.ok) return;
+          const files = await res.json();
+
+          const existing = slides.map((s) => s.getAttribute('data-image'));
+          // If identical, nothing to do
+          if (files.length === existing.length && files.every((f, i) => f === existing[i])) return;
+
+          const slidesContainer = container.querySelector('.slideshow-slides');
+          const dotsContainer = container.querySelector('.pointer-events-none');
+
+          // Rebuild slides html
+          slidesContainer.innerHTML = '';
+          dotsContainer.innerHTML = '';
+
+          files.forEach((file, idx) => {
+            const div = document.createElement('div');
+            div.className = idx === 0 ? 'slideshow-slide absolute inset-0 transition-opacity duration-1000 opacity-100 pointer-events-auto z-10' : 'slideshow-slide absolute inset-0 transition-opacity duration-1000 opacity-0 pointer-events-none z-0';
+            div.setAttribute('data-image', file);
+
+            const img = document.createElement('img');
+            img.src = `/Slideshow/${encodeURIComponent(file)}`;
+            img.alt = `Slide ${idx + 1}`;
+            img.className = 'h-full w-full object-cover will-change-opacity';
+            img.loading = 'eager';
+            div.appendChild(img);
+
+            slidesContainer.appendChild(div);
+
+            const dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'slideshow-dot h-2.5 w-2.5 rounded-full bg-white/50 opacity-75 transition focus:outline-none';
+            dot.setAttribute('aria-label', `Show slide ${idx + 1}`);
+            dotsContainer.appendChild(dot);
+          });
+
+          // Re-query and reattach handlers
+          slides = Array.from(container.querySelectorAll('.slideshow-slide'));
+          dots = Array.from(container.querySelectorAll('.slideshow-dot'));
+
+          dots.forEach((dot, index) => {
+            if (dot._clickHandler) dot.removeEventListener('click', dot._clickHandler);
+            const handler = () => {
+              setActive(index);
+              start();
+            };
+            dot._clickHandler = handler;
+            dot.addEventListener('click', handler);
+          });
+
+          // ensure state
+          setActive(0);
+          preload();
+        } catch (err) {
+          // ignore - manifest may not exist yet
+        }
+      };
+
+      const setActive = (index) => {
+        const safeIndex = (index + slides.length) % slides.length;
+
+        slides.forEach((slide, slideIndex) => {
+          const isActive = slideIndex === safeIndex;
+          slide.classList.toggle('opacity-100', isActive);
+          slide.classList.toggle('opacity-0', !isActive);
+          slide.classList.toggle('pointer-events-auto', isActive);
+          slide.classList.toggle('pointer-events-none', !isActive);
+          slide.classList.toggle('z-10', isActive);
+          slide.classList.toggle('z-0', !isActive);
+        });
+
+        dots.forEach((dot, dotIndex) => {
+          const isActive = dotIndex === safeIndex;
+          dot.classList.toggle('opacity-100', isActive);
+          dot.classList.toggle('opacity-75', !isActive);
+        });
+
+        current = safeIndex;
       };
 
       const stop = () => {
@@ -93,32 +176,49 @@ try {
         }
       };
 
+      const start = () => {
+        stop();
+        timer = window.setInterval(() => {
+          setActive(current + 1);
+        }, 5000);
+      };
+
       dots.forEach((dot, index) => {
-        dot.addEventListener('click', () => {
+        if (dot._clickHandler) dot.removeEventListener('click', dot._clickHandler);
+        const handler = () => {
           setActive(index);
-          stop();
           start();
-        });
+        };
+        dot._clickHandler = handler;
+        dot.addEventListener('click', handler);
       });
 
-      prev.addEventListener('click', () => {
-        setActive((current - 1 + slides.length) % slides.length);
-        stop();
+      prev?.addEventListener('click', () => {
+        setActive(current - 1);
         start();
       });
 
-      next.addEventListener('click', () => {
-        setActive((current + 1) % slides.length);
-        stop();
+      next?.addEventListener('click', () => {
+        setActive(current + 1);
         start();
       });
 
-      if (container) {
-        container.addEventListener('mouseenter', stop);
-        container.addEventListener('mouseleave', start);
-      }
+      container.addEventListener('mouseenter', stop);
+      container.addEventListener('mouseleave', start);
 
+      setActive(0);
+      preload();
       start();
-    });
+
+      // Poll for new images (dev-friendly). If your deployment supports
+      // server endpoints, new images will be appended at runtime.
+      setInterval(() => refreshFiles(), 5000);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => initSlideshow(), { once: true });
+    } else {
+      initSlideshow();
+    }
   </script>
 </section>

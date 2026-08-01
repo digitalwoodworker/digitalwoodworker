@@ -8,7 +8,8 @@ import { fileURLToPath } from 'url';
 
 const publicDir = fileURLToPath(new URL('../../public', import.meta.url));
 const basePath = import.meta.env.BASE_URL === '/' ? '/' : import.meta.env.BASE_URL;
-const cardFolders = {
+const withBase = (href: string) => (href === '/' ? basePath : `${basePath}${href.slice(1)}`);
+const cardFolders: Record<string, string> = {
   'scale-models': 'Scale-Models',
   'wood-turning': 'Wood-Turning',
   boxes: 'Boxes',
@@ -17,10 +18,10 @@ const cardFolders = {
   clocks: 'Clocks',
 };
 
-function randomCardImage(folder) {
+function randomCardImage(folder: string) {
   const folderPath = path.join(publicDir, folder);
   if (!fs.existsSync(folderPath)) return null;
-  const files = fs.readdirSync(folderPath).filter((file) => /\.(jpe?g|png|webp|gif|svg)$/i.test(file));
+  const files = fs.readdirSync(folderPath).filter((file: string) => /\.(jpe?g|png|webp|gif|svg)$/i.test(file));
   if (!files.length) return null;
   return `${basePath}${encodeURIComponent(folder)}/${encodeURIComponent(files[Math.floor(Math.random() * files.length)])}`;
 }
@@ -34,6 +35,7 @@ const cards = [
   { href: '/clocks', title: 'Clocks', description: 'Discover timepieces that pair precise mechanics with handcrafted wood faces and finishes.' },
 ].map((card) => ({
   ...card,
+  resolvedHref: withBase(card.href),
   image: randomCardImage(cardFolders[card.href.slice(1)]),
 }));
 ---
@@ -58,7 +60,7 @@ const cards = [
 
       <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (
-          <a href={card.href} class="group overflow-hidden rounded-[1.75rem] border border-slate-200 bg-slate-50 transition hover:border-slate-300 hover:bg-white">
+          <a href={card.resolvedHref} class="group overflow-hidden rounded-[1.75rem] border border-slate-200 bg-slate-50 transition hover:border-slate-300 hover:bg-white">
             {card.image ? (
               <div class="flex items-center justify-center bg-slate-100 overflow-hidden max-h-56 md:max-h-72 lg:max-h-80">
                 <img

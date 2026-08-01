@@ -7,6 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const publicDir = fileURLToPath(new URL('../../public', import.meta.url));
+const basePath = import.meta.env.BASE_URL === '/' ? '/' : import.meta.env.BASE_URL;
 const cardFolders = {
   'scale-models': 'Scale-Models',
   'wood-turning': 'Wood-Turning',
@@ -21,7 +22,7 @@ function randomCardImage(folder) {
   if (!fs.existsSync(folderPath)) return null;
   const files = fs.readdirSync(folderPath).filter((file) => /\.(jpe?g|png|webp|gif|svg)$/i.test(file));
   if (!files.length) return null;
-  return `/${folder}/${encodeURIComponent(files[Math.floor(Math.random() * files.length)])}`;
+  return `${basePath}${encodeURIComponent(folder)}/${encodeURIComponent(files[Math.floor(Math.random() * files.length)])}`;
 }
 
 const cards = [

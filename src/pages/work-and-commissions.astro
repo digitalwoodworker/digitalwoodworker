@@ -4,9 +4,8 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
-const publicDir = fileURLToPath(new URL('../../public', import.meta.url));
+const publicDir = path.join(process.cwd(), 'public');
 const basePath = import.meta.env.BASE_URL === '/' ? '/' : import.meta.env.BASE_URL;
 const withBase = (href: string) => (href === '/' ? basePath : `${basePath}${href.slice(1)}`);
 const cardFolders: Record<string, string> = {

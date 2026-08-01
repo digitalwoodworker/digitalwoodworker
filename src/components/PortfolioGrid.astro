@@ -1,6 +1,7 @@
 ---
+const basePath = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL;
 const projects = [
-  { title: 'Wright Flier Scale model', subtitle: 'A scale model of Wright Brother aircraft in wood', image: 'public/Scale-Models/Wright.jpg' },
+  { title: 'Wright Flier Scale model', subtitle: 'A scale model of Wright Brother aircraft in wood', image: `${basePath}/Scale-Models/Wright.jpg` },
   { title: 'Charcuterie Board Set', subtitle: 'Hand-rubbed walnut with brass handles', image: 'https://images.unsplash.com/photo-1517325065758-5fb062a8d8a6?auto=format&fit=crop&w=900&q=80' },
   { title: 'Walnut Entryway Bench', subtitle: 'Minimal profile with hidden storage', image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80' },
 ];

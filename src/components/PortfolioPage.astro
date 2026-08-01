@@ -18,8 +18,8 @@ const { title, subtitle, copy, folderName } = Astro.props;
     <Header />
     <main class="mx-auto max-w-6xl px-6 py-20">
       <section class="text-center">
-        <h1 class="mt-4 text-4xl font-semibold tracking-tight text-white sm:text-5xl">{title}</h1>
-        <p class="mx-auto mt-6 max-w-2xl text-base leading-8 text-white/80">{copy}</p>
+        <h1 class="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">{title}</h1>
+        <p class="mx-auto mt-6 max-w-2xl text-base leading-8 text-slate-700">{copy}</p>
       </section>
 
       <PortfolioGallery folderName={folderName} />

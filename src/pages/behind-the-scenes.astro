@@ -9,24 +9,24 @@ const assetPath = (folder: string, file: string) => `${basePath}BTS/${encodeURIC
 
 const btsSections = [
   {
-    title: 'Work In Progress',
-    intro: 'Snapshots from pieces still taking shape, showing the build as it evolves from raw material to finished form.',
+    title: 'Prototyping',
+    intro: 'Prototyping isn\'t just a step in my process—it\'s the meticulous refining ground where ideas earn their form.',
     items: [
       {
-        image: assetPath('WIP', 'Teak.png'),
+        image: assetPath('WIP', 'IMG_20260708_141613.jpg'),
         alt: 'Work in progress piece in teak',
-        description: 'An in-progress teak build showing material preparation and early shaping before the final finish is applied.',
+        description: 'A prototype being tested for a magnetic knife holder.',
       },
     ],
   },
   {
     title: 'Tools',
-    intro: 'The tools, fixtures, and reference materials that help deliver clean cuts, accurate shaping, and reliable repeatability.',
+    intro: 'No compromises, no substitutes. If a specialized task demands a world-class tool from across the globe, I invest in it.',
     items: [
       {
-        image: assetPath('Tools', 'Screenshot_17-6-2026_101133_in.pinterest.com.jpeg'),
+        image: assetPath('Tools', 'Tormek.jpg'),
         alt: 'Reference and tool setup',
-        description: 'A look at one of the tools or references used during planning and making, highlighting the precision behind the process.',
+        description: 'A spindle gouge being sharpened in Tormek T-4 watercooled sharpening system .',
       },
     ],
   },
@@ -35,9 +35,14 @@ const btsSections = [
     intro: 'The small details that often go unnoticed, but play a major role in the quality, finish, and personality of a piece.',
     items: [
       {
-        image: assetPath('Details', 'Precision Dog Intarsia Pattern _ Woodworking Template PDF.jpg'),
+        image: assetPath('Details', 'IMG_20260708_121834.jpg'),
         alt: 'Small but significant design detail',
-        description: 'A close-up detail that reflects the careful decisions and fine touches that elevate the final work.',
+        description: 'A joinery getting tested.',
+      },
+      {
+        image: assetPath('Details', 'IMG_20260708_121825.jpg'),
+        alt: 'Small but significant design detail',
+        description: 'A joinery getting tested.',
       },
     ],
   },
@@ -67,7 +72,7 @@ const btsSections = [
           <div class="space-y-6">
             <div>
               <h2 class="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">{section.title}</h2>
-              <p class="mt-3 max-w-3xl text-base leading-8 text-slate-600">{section.intro}</p>
+              <p class="mt-3 w-full max-w-none text-[1.2rem] leading-9 text-slate-600">{section.intro}</p>
             </div>
 
             <div class="grid gap-8 sm:grid-cols-2 xl:grid-cols-3">

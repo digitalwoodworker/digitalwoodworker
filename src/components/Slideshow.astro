@@ -104,6 +104,7 @@ try {
 
       let current = 0;
       let timer = null;
+      let hoverPauseEnabled = false;
 
       // Preload images to avoid flicker or delayed loads when switching slides
       const imgs = () => slides.map((s) => s.querySelector('img')).filter(Boolean);
@@ -233,6 +234,7 @@ try {
         stop();
         timer = window.setInterval(() => {
           setActive(current + 1);
+          hoverPauseEnabled = true;
         }, 5000);
       };
 
@@ -256,8 +258,14 @@ try {
         start();
       });
 
-      container.addEventListener('mouseenter', stop);
-      container.addEventListener('mouseleave', start);
+      container.addEventListener('mouseenter', () => {
+        if (!hoverPauseEnabled) return;
+        stop();
+      });
+      container.addEventListener('mouseleave', () => {
+        if (!hoverPauseEnabled) return;
+        start();
+      });
 
       setActive(0);
       preload();

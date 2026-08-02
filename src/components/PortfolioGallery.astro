@@ -4,7 +4,10 @@ import path from 'path';
 import { execSync } from 'child_process';
 
 const { folderName } = Astro.props;
-const basePath = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL;
+const basePath = import.meta.env.BASE_URL;
+const encodePathSegments = (value: string) => value.split('/').map((segment) => encodeURIComponent(segment)).join('/');
+const folderPath = encodePathSegments(folderName);
+const imageUrl = (image: string) => `${basePath}${folderPath}/${encodeURIComponent(image)}`;
 const publicDir = path.join(process.cwd(), 'public');
 const galleryPath = path.join(publicDir, folderName);
 const imageFiles = fs.existsSync(galleryPath)
@@ -31,7 +34,7 @@ try {
   class="mt-12"
   data-portfolio-gallery
   data-folder-name={folderName}
-  data-base-path={basePath || '/'}
+  data-base-path={basePath}
   data-github-owner={githubOwner}
   data-github-repo={githubRepo}
   data-github-branch={githubBranch}
@@ -42,10 +45,10 @@ try {
       <div class="portfolio-gallery-grid mt-10 columns-1 sm:columns-2 lg:columns-3 2xl:columns-4 [column-gap:1.5rem]">
         {galleryImages.map((image) => (
           <article class="inline-block w-full break-inside-avoid overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-lg shadow-slate-900/10 mb-6">
-            <a href={`${basePath}${encodeURIComponent(folderName)}/${encodeURIComponent(image)}`} target="_blank" rel="noreferrer" class="block cursor-pointer">
+            <a href={imageUrl(image)} target="_blank" rel="noreferrer" class="block cursor-pointer">
               <img
                 class="w-full h-auto bg-slate-100 transition duration-300 hover:scale-[1.01]"
-                src={`${basePath}${encodeURIComponent(folderName)}/${encodeURIComponent(image)}`}
+                src={imageUrl(image)}
                 alt={image.replace(/[-_]/g, ' ').replace(/\.[^.]+$/, '')}
               />
             </a>
@@ -66,6 +69,9 @@ try {
 
       const folderName = root.dataset.folderName || '';
       const basePath = root.dataset.basePath || '/';
+      const encodePathSegments = (value) => value.split('/').map((segment) => encodeURIComponent(segment)).join('/');
+      const folderPath = encodePathSegments(folderName);
+      const imageUrl = (image) => `${basePath}${folderPath}/${encodeURIComponent(image)}`;
       const owner = root.dataset.githubOwner || 'digitalwoodworker';
       const repo = root.dataset.githubRepo || 'digitalwoodworker';
       const branch = root.dataset.githubBranch || 'master';
@@ -81,13 +87,13 @@ try {
           const article = document.createElement('article');
           article.className = 'inline-block w-full break-inside-avoid overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-lg shadow-slate-900/10 mb-6';
           const anchor = document.createElement('a');
-          anchor.href = `${basePath}${encodeURIComponent(folderName)}/${encodeURIComponent(image)}`;
+          anchor.href = imageUrl(image);
           anchor.target = '_blank';
           anchor.rel = 'noreferrer';
           anchor.className = 'block cursor-pointer';
           const img = document.createElement('img');
           img.className = 'w-full h-auto bg-slate-100 transition duration-300 hover:scale-[1.01]';
-          img.src = `${basePath}${encodeURIComponent(folderName)}/${encodeURIComponent(image)}`;
+          img.src = imageUrl(image);
           img.alt = image.replace(/[-_]/g, ' ').replace(/\.[^.]+$/, '');
           img.loading = 'lazy';
           anchor.appendChild(img);

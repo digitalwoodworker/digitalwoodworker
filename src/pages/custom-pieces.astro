@@ -1,11 +1,23 @@
 ---
 import '../styles/global.css';
-import PortfolioPage from '../components/PortfolioPage.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import ProcessCards from '../components/ProcessCards.astro';
+
+const title = 'Custom Pieces';
+const copy = 'Explore bespoke custom projects designed from scratch, blending precision craftsmanship with your personal style and functional needs.';
 ---
 
-<PortfolioPage
-  title="Custom Pieces"
-  subtitle="One-off commissions made around your exact vision"
-  copy="Explore bespoke custom projects designed from scratch, blending precision craftsmanship with your personal style and functional needs."
-  folderName="Custom-Pieces"
-/>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} | DigitalWoodworker</title>
+    <meta name="description" content={copy} />
+  </head>
+  <body class="bg-white text-slate-900">
+    <Header />
+        <ProcessCards />
+    <Footer />
+  </body>
+</html>  

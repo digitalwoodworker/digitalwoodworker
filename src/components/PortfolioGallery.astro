@@ -42,9 +42,9 @@ try {
   <div class="mx-auto max-w-7xl">
     
     {galleryImages.length > 0 ? (
-      <div class="portfolio-gallery-grid mt-10 columns-1 sm:columns-2 lg:columns-3 2xl:columns-4 [column-gap:1.5rem]">
+      <div class="portfolio-gallery-grid mt-10">
         {galleryImages.map((image) => (
-          <article class="inline-block w-full break-inside-avoid overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-lg shadow-slate-900/10 mb-6">
+          <article class="mb-6 inline-block w-full break-inside-avoid overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-lg shadow-slate-900/10">
             <a href={imageUrl(image)} target="_blank" rel="noreferrer" class="block cursor-pointer">
               <img
                 class="w-full h-auto bg-slate-100 transition duration-300 hover:scale-[1.01]"
@@ -85,7 +85,7 @@ try {
         grid.innerHTML = '';
         images.forEach((image) => {
           const article = document.createElement('article');
-          article.className = 'inline-block w-full break-inside-avoid overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-lg shadow-slate-900/10 mb-6';
+          article.className = 'mb-6 inline-block w-full break-inside-avoid overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-lg shadow-slate-900/10';
           const anchor = document.createElement('a');
           anchor.href = imageUrl(image);
           anchor.target = '_blank';
@@ -122,3 +122,28 @@ try {
     })();
   </script>
 </section>
+
+<style>
+  .portfolio-gallery-grid {
+    column-count: 1;
+    column-gap: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .portfolio-gallery-grid {
+      column-count: 2;
+    }
+  }
+
+  @media (min-width: 900px) {
+    .portfolio-gallery-grid {
+      column-count: 3;
+    }
+  }
+
+  @media (min-width: 1400px) {
+    .portfolio-gallery-grid {
+      column-count: 4;
+    }
+  }
+</style>

@@ -48,10 +48,10 @@ try {
 
 ---
 
-<section class="slideshow-section relative overflow-hidden bg-slate-950 text-white" data-github-owner={githubOwner} data-github-repo={githubRepo} data-github-branch={githubBranch}>
+<section class="slideshow-section relative overflow-hidden bg-slate-950 text-white" data-github-owner={githubOwner} data-github-repo={githubRepo} data-github-branch={githubBranch} data-base-path={basePath}>
   <div class="mx-auto max-w-7xl px-6 py-8">
     <div class="rounded-[2rem] border border-white/10 bg-slate-900/80 p-4 shadow-2xl shadow-slate-950/40">
-      <div class="relative overflow-hidden rounded-[1.75rem] h-[520px] w-full">
+      <div class="relative overflow-hidden rounded-[1.75rem] aspect-video w-full bg-slate-950">
         {slideshowFiles.length ? (
             <div>
             <div class="slideshow-slides">
@@ -60,7 +60,7 @@ try {
                   <img
                     src={`${basePath}Slideshow/${encodeURIComponent(file)}`}
                     alt={`Slide ${index + 1}`}
-                    class="h-full w-full object-cover will-change-opacity"
+                    class="h-full w-full object-contain will-change-opacity"
                     loading="eager"
                   />
                 </div>
@@ -96,6 +96,7 @@ try {
       const container = document.querySelector('.slideshow-section');
       if (!container) return;
 
+      const basePath = container.dataset.basePath || '';
       let slides = Array.from(container.querySelectorAll('.slideshow-slide'));
       let dots = Array.from(container.querySelectorAll('.slideshow-dot'));
       const prev = container.querySelector('.slideshow-prev');
@@ -171,7 +172,7 @@ try {
           const img = document.createElement('img');
           img.src = `${basePath}Slideshow/${encodeURIComponent(file)}`;
           img.alt = `Slide ${idx + 1}`;
-          img.className = 'h-full w-full object-cover will-change-opacity';
+          img.className = 'h-full w-full object-contain will-change-opacity';
           img.loading = 'eager';
           div.appendChild(img);
 

@@ -62,9 +62,9 @@ const cards = [
         {cards.map((card) => (
           <a href={card.resolvedHref} class="group overflow-hidden rounded-[1.75rem] border border-slate-200 bg-slate-50 transition hover:border-slate-300 hover:bg-white">
             {card.image ? (
-              <div class="flex items-center justify-center bg-slate-100 overflow-hidden max-h-56 md:max-h-72 lg:max-h-80">
+              <div class="flex h-52 items-center justify-center bg-slate-100 p-3 sm:h-56 md:h-60 lg:h-64">
                 <img
-                  class="w-full h-auto object-center transition duration-300 group-hover:scale-[1.02]"
+                  class="h-full w-full object-contain object-center transition duration-300 group-hover:scale-[1.02]"
                   src={card.image}
                   alt={`${card.title} preview`}
                 />

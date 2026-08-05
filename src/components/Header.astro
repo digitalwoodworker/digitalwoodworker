@@ -38,16 +38,15 @@ const navLinks = [
 ---
 
 <nav class="sticky top-0 z-30 overflow-visible border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
-  <div class="mx-auto max-w-7xl px-6 py-4">
-    <div class="flex items-center justify-between gap-4">
-      <a class="inline-flex min-w-0 flex-1 min-h-[4.5rem] items-stretch justify-between gap-4 font-bold uppercase tracking-[0.2em] text-red-500" href={withBase('/')}>
-        <span class="inline-flex items-center gap-3 py-1 self-start text-[180%] leading-none">
+  <div class="mx-auto max-w-7xl px-6 py-3 sm:py-4">
+    <div class="flex items-center justify-between gap-3">
+      <a class="inline-flex min-w-0 max-w-[calc(100%-3.5rem)] min-h-[3.5rem] sm:min-h-[4.5rem] items-center gap-3 overflow-hidden pr-2 font-bold uppercase tracking-[0.2em] text-red-500" href={withBase('/')}>
+        <span class="min-w-0 max-w-full overflow-hidden whitespace-nowrap text-[95%] sm:text-[110%] md:text-[135%] lg:text-[180%] leading-none text-left">
           <span class="inline-block h-2.5 w-2.5 rounded-full bg-amber-500"></span>
           DigitalWoodworker
         </span>
-        <span class="hidden min-w-0 flex-1 truncate self-end text-right text-lg italic normal-case tracking-wide text-neutral-900 tagline-cursive lg:inline-flex">....because the smallest details make the biggest impact.</span>
       </a>
-      <button id="mobile-menu-toggle" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-900 transition hover:bg-slate-100 md:hidden" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+      <button id="mobile-menu-toggle" class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-900 transition hover:bg-slate-100 md:hidden" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
         <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>

@@ -4,15 +4,14 @@ import path from 'path';
 import { execSync } from 'child_process';
 
 let slideshowFiles = [];
+const getCaption = (file) => file.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
 try {
+  const dir = path.join(process.cwd(), 'public', 'Slideshow');
   const manifestPath = path.join(process.cwd(), 'public', 'slideshow-manifest.json');
-  if (fs.existsSync(manifestPath)) {
+  if (fs.existsSync(dir)) {
+    slideshowFiles = fs.readdirSync(dir).filter((f) => /\.(jpe?g|png|webp|avif|gif)$/i.test(f)).sort();
+  } else if (fs.existsSync(manifestPath)) {
     slideshowFiles = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  } else {
-    const dir = path.join(process.cwd(), 'public', 'Slideshow');
-    if (fs.existsSync(dir)) {
-      slideshowFiles = fs.readdirSync(dir).filter((f) => /\.(jpe?g|png|webp|avif|gif)$/i.test(f)).sort();
-    }
   }
 } catch (err) {
   slideshowFiles = [];
@@ -56,13 +55,18 @@ try {
             <div>
             <div class="slideshow-slides">
               {slideshowFiles.map((file, index) => (
-                <div class={`slideshow-slide absolute inset-0 transition-opacity duration-1000 ${index === 0 ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0'}`} data-image={file}>
+                <div class={`slideshow-slide absolute inset-0 transition-opacity duration-1000 ${index === 0 ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0'}`} data-image={file} data-caption={getCaption(file)}>
                   <img
                     src={`${basePath}Slideshow/${encodeURIComponent(file)}`}
-                    alt={`Slide ${index + 1}`}
+                    alt={getCaption(file)}
                     class="h-full w-full object-contain will-change-opacity"
                     loading="eager"
                   />
+                  <div class="absolute inset-x-0 bottom-4 flex justify-center px-4">
+                    <p class="max-w-[min(90vw,40rem)] rounded-full bg-slate-950/85 px-4 py-2 text-sm sm:text-base md:text-lg font-medium leading-6 text-white shadow-lg ring-1 ring-white/10 backdrop-blur">
+                      {getCaption(file)}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -76,7 +80,7 @@ try {
                 <path fill-rule="evenodd" d="M7.293 4.293a1 1 0 0 1 1.414 0L13.414 9l-4.707 4.707a1 1 0 0 1-1.414-1.414L10.586 9 7.293 5.707a1 1 0 0 1 0-1.414z" clip-rule="evenodd" />
               </svg>
             </button>
-            <div class="pointer-events-none absolute inset-x-0 bottom-5 flex justify-center gap-2">
+            <div class="absolute inset-x-0 bottom-5 flex justify-center gap-2 slideshow-dots">
               {slideshowFiles.map((_, index) => (
                 <button type="button" class="slideshow-dot h-2.5 w-2.5 rounded-full bg-white/50 opacity-75 transition focus:outline-none" aria-label={`Show slide ${index + 1}`}></button>
               ))}
@@ -92,114 +96,27 @@ try {
   </div>
 
   <script is:inline>
-    async function initSlideshow() {
+    function initSlideshow() {
       const container = document.querySelector('.slideshow-section');
       if (!container) return;
 
-      const basePath = container.dataset.basePath || '';
-      let slides = Array.from(container.querySelectorAll('.slideshow-slide'));
-      let dots = Array.from(container.querySelectorAll('.slideshow-dot'));
+      const slides = Array.from(container.querySelectorAll('.slideshow-slide'));
+      const dots = Array.from(container.querySelectorAll('.slideshow-dot'));
       const prev = container.querySelector('.slideshow-prev');
       const next = container.querySelector('.slideshow-next');
       if (!slides.length || !dots.length) return;
 
       let current = 0;
       let timer = null;
-      let hoverPauseEnabled = false;
 
-      // Preload images to avoid flicker or delayed loads when switching slides
-      const imgs = () => slides.map((s) => s.querySelector('img')).filter(Boolean);
       const preload = () => {
-        imgs().forEach((img) => {
-          if (!img.complete) {
-            const p = new Image();
-            p.src = img.src;
+        slides.forEach((slide) => {
+          const img = slide.querySelector('img');
+          if (img && !img.complete) {
+            const preloaded = new Image();
+            preloaded.src = img.src;
           }
         });
-      };
-
-      // Fetch the build-time manifest and rebuild slides/dots when it changes
-      const refreshFiles = async () => {
-        // Try build-time manifest first
-        try {
-          const res = await fetch(`${basePath}slideshow-manifest.json`);
-          if (res.ok) {
-            const files = await res.json();
-            if (Array.isArray(files) && files.length) {
-              await applyFiles(files);
-              return;
-            }
-          }
-        } catch (e) {
-          // ignore manifest fetch failures
-        }
-
-        // Fallback: try GitHub Contents API if repo info is available
-        try {
-          const owner = container.dataset.githubOwner;
-          const repo = container.dataset.githubRepo;
-          const branch = container.dataset.githubBranch || 'main';
-          if (!owner || !repo) return;
-
-          const api = `https://api.github.com/repos/${owner}/${repo}/contents/public/Slideshow?ref=${encodeURIComponent(branch)}`;
-          const r = await fetch(api);
-          if (!r.ok) return;
-          const json = await r.json();
-          if (!Array.isArray(json)) return;
-          const files = json.map((item) => item.name).filter((n) => /\.(jpe?g|png|webp|avif|gif)$/i.test(n)).sort();
-          if (!files.length) return;
-          await applyFiles(files);
-        } catch (e) {
-          // ignore
-        }
-      };
-
-      // Helper to rebuild DOM from file list
-      const applyFiles = async (files) => {
-        const existing = slides.map((s) => s.getAttribute('data-image'));
-        if (files.length === existing.length && files.every((f, i) => f === existing[i])) return;
-
-        const slidesContainer = container.querySelector('.slideshow-slides');
-        const dotsContainer = container.querySelector('.pointer-events-none');
-        slidesContainer.innerHTML = '';
-        dotsContainer.innerHTML = '';
-
-        files.forEach((file, idx) => {
-          const div = document.createElement('div');
-          div.className = idx === 0 ? 'slideshow-slide absolute inset-0 transition-opacity duration-1000 opacity-100 pointer-events-auto z-10' : 'slideshow-slide absolute inset-0 transition-opacity duration-1000 opacity-0 pointer-events-none z-0';
-          div.setAttribute('data-image', file);
-
-          const img = document.createElement('img');
-          img.src = `${basePath}Slideshow/${encodeURIComponent(file)}`;
-          img.alt = `Slide ${idx + 1}`;
-          img.className = 'h-full w-full object-contain will-change-opacity';
-          img.loading = 'eager';
-          div.appendChild(img);
-
-          slidesContainer.appendChild(div);
-
-          const dot = document.createElement('button');
-          dot.type = 'button';
-          dot.className = 'slideshow-dot h-2.5 w-2.5 rounded-full bg-white/50 opacity-75 transition focus:outline-none';
-          dot.setAttribute('aria-label', `Show slide ${idx + 1}`);
-          dotsContainer.appendChild(dot);
-        });
-
-        slides = Array.from(container.querySelectorAll('.slideshow-slide'));
-        dots = Array.from(container.querySelectorAll('.slideshow-dot'));
-
-        dots.forEach((dot, index) => {
-          if (dot._clickHandler) dot.removeEventListener('click', dot._clickHandler);
-          const handler = () => {
-            setActive(index);
-            start();
-          };
-          dot._clickHandler = handler;
-          dot.addEventListener('click', handler);
-        });
-
-        setActive(0);
-        preload();
       };
 
       const setActive = (index) => {
@@ -235,18 +152,14 @@ try {
         stop();
         timer = window.setInterval(() => {
           setActive(current + 1);
-          hoverPauseEnabled = true;
         }, 5000);
       };
 
       dots.forEach((dot, index) => {
-        if (dot._clickHandler) dot.removeEventListener('click', dot._clickHandler);
-        const handler = () => {
+        dot.addEventListener('click', () => {
           setActive(index);
           start();
-        };
-        dot._clickHandler = handler;
-        dot.addEventListener('click', handler);
+        });
       });
 
       prev?.addEventListener('click', () => {
@@ -259,22 +172,9 @@ try {
         start();
       });
 
-      container.addEventListener('mouseenter', () => {
-        if (!hoverPauseEnabled) return;
-        stop();
-      });
-      container.addEventListener('mouseleave', () => {
-        if (!hoverPauseEnabled) return;
-        start();
-      });
-
       setActive(0);
       preload();
       start();
-
-      // Poll for new images (dev-friendly). If your deployment supports
-      // server endpoints, new images will be appended at runtime.
-      setInterval(() => refreshFiles(), 5000);
     }
 
     if (document.readyState === 'loading') {

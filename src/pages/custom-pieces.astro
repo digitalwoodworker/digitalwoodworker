@@ -20,7 +20,22 @@ const copy = 'Explore bespoke custom projects designed from scratch, blending pr
   </head>
   <body class="bg-white text-slate-900">
     <Header />
-        <ProcessCards />
+    <main class="mx-auto max-w-6xl px-6 py-20">
+      <section class="text-center">
+        <h1 class="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">{title}</h1>
+        <p class="mx-auto mt-6 max-w-2xl text-base leading-8 text-slate-700">{copy}</p>
+      </section>
+
+      <section class="mx-auto mt-12 max-w-4xl">
+        <img
+          src={import.meta.env.BASE_URL + 'confused_customer.webp'}
+          alt="Confused customer illustration"
+          class="w-full rounded-[2rem] border border-slate-200 shadow-lg shadow-slate-900/10"
+        />
+      </section>
+
+      <ProcessCards />
+    </main>
     <Footer />
   </body>
 </html>  

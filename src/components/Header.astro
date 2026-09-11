@@ -1,7 +1,11 @@
 ---
 const basePath = import.meta.env.BASE_URL;
 const withBase = (href: string) => {
-  const normalizedHref = href === '/' ? '/' : href.replace(/\/+$/, '');
+  if (href === '/') {
+    return basePath === '/' ? '/' : `${basePath.replace(/\/+$/, '')}/`;
+  }
+
+  const normalizedHref = href.replace(/\/+$/, '');
   const hasFileExtension = /\.[a-z0-9]+$/i.test(normalizedHref);
   const finalHref = hasFileExtension ? normalizedHref : `${normalizedHref}/`;
   return basePath === '/' ? finalHref : `${basePath.replace(/\/+$/, '')}${finalHref}`;

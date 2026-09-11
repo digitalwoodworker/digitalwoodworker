@@ -161,23 +161,35 @@ const navLinks = [
     toggle.querySelector('[data-chevron]')?.classList.add('rotate-180');
   }
 
+  function setDropdownState(item: Element, shouldOpen: boolean) {
+    if (shouldOpen) {
+      openDropdown(item);
+    } else {
+      closeDropdown(item);
+    }
+  }
+
   function initNavToggles() {
     const navItems = document.querySelectorAll('[data-nav-item]');
+    const supportsHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
     navItems.forEach((item) => {
       const toggle = item.querySelector('.nav-toggle');
       const dropdown = item.querySelector('[data-dropdown]');
       if (!toggle || !dropdown) return;
 
-      item.addEventListener('mouseenter', () => {
-        navItems.forEach((other) => {
-          if (other !== item) closeDropdown(other);
+      if (supportsHover) {
+        item.addEventListener('mouseenter', () => {
+          navItems.forEach((other) => {
+            if (other !== item) closeDropdown(other);
+          });
+          openDropdown(item);
         });
-        openDropdown(item);
-      });
 
-      item.addEventListener('mouseleave', () => {
-        closeDropdown(item);
-      });
+        item.addEventListener('mouseleave', () => {
+          closeDropdown(item);
+        });
+      }
 
       toggle.addEventListener('click', (event) => {
         event.preventDefault();
@@ -188,9 +200,8 @@ const navLinks = [
           if (other !== item) closeDropdown(other);
         });
 
-        dropdown.classList.toggle('hidden', isOpen);
-        toggle.setAttribute('aria-expanded', String(!isOpen));
-        toggle.querySelector('[data-chevron]')?.classList.toggle('rotate-180', !isOpen);
+        const nextState = !isOpen;
+        setDropdownState(item, nextState);
       });
     });
 

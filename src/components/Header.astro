@@ -1,6 +1,11 @@
 ---
 const basePath = import.meta.env.BASE_URL;
-const withBase = (href: string) => (href === '/' ? basePath : `${basePath}${href.slice(1)}`);
+const withBase = (href: string) => {
+  const normalizedHref = href === '/' ? '/' : href.replace(/\/+$/, '');
+  const hasFileExtension = /\.[a-z0-9]+$/i.test(normalizedHref);
+  const finalHref = hasFileExtension ? normalizedHref : `${normalizedHref}/`;
+  return basePath === '/' ? finalHref : `${basePath.replace(/\/+$/, '')}${finalHref}`;
+};
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -29,7 +34,6 @@ const navLinks = [
     sublinks: [
       { label: 'About Me', href: '/about-me' },
       { label: 'Why DigitalWoodworker?', href: '/why-me' },
-      { label: 'Wood Selection', href: '/wood-selection' },
       { label: 'Behind the scenes', href: '/behind-the-scenes' },
     ],
   },
@@ -64,7 +68,7 @@ const navLinks = [
       {navLinks.map((link) => (
         <div class="relative" data-nav-item>
           <div class="inline-flex items-center gap-1">
-            {link.href === '/about-the-craft' ? (
+            {link.sublinks ? (
               <span class="inline-flex items-center gap-2 text-sm uppercase tracking-[0.24em] text-slate-900">
                 <span class="font-semibold">{link.label}</span>
               </span>
@@ -105,7 +109,7 @@ const navLinks = [
       {navLinks.map((link) => (
         <div class="rounded-3xl border border-slate-200 bg-slate-50" data-nav-item>
           <div class="flex items-center justify-between px-4 py-3">
-            {link.href === '/about-the-craft' ? (
+            {link.sublinks ? (
               <span class="flex-1 text-sm uppercase tracking-[0.24em] text-slate-800">{link.label}</span>
             ) : (
               <a class="flex-1 text-sm uppercase tracking-[0.24em] text-slate-800" href={withBase(link.href)}>
@@ -147,12 +151,33 @@ const navLinks = [
     toggle?.querySelector('[data-chevron]')?.classList.remove('rotate-180');
   }
 
+  function openDropdown(item: Element) {
+    const dropdown = item.querySelector('[data-dropdown]');
+    const toggle = item.querySelector('.nav-toggle');
+    if (!dropdown || !toggle) return;
+
+    dropdown.classList.remove('hidden');
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.querySelector('[data-chevron]')?.classList.add('rotate-180');
+  }
+
   function initNavToggles() {
     const navItems = document.querySelectorAll('[data-nav-item]');
     navItems.forEach((item) => {
       const toggle = item.querySelector('.nav-toggle');
       const dropdown = item.querySelector('[data-dropdown]');
       if (!toggle || !dropdown) return;
+
+      item.addEventListener('mouseenter', () => {
+        navItems.forEach((other) => {
+          if (other !== item) closeDropdown(other);
+        });
+        openDropdown(item);
+      });
+
+      item.addEventListener('mouseleave', () => {
+        closeDropdown(item);
+      });
 
       toggle.addEventListener('click', (event) => {
         event.preventDefault();

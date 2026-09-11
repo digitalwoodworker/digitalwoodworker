@@ -2,16 +2,33 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+
+const canonicalUrl = new URL('/contact-me/', Astro.site).toString();
 ---
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- SEO META START -->
     <title>Contact Me | DigitalWoodworker</title>
+    <meta name="description" content="Contact DigitalWoodworker for bespoke woodworking commissions, custom gifts, and design consultations across India." />
+    <meta name="robots" content="index, follow" />
+    <meta name="keywords" content="contact woodworker, custom woodworking commission, bespoke wood design, woodworking inquiry, commission quote" />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Contact Me | DigitalWoodworker" />
+    <meta property="og:description" content="Contact DigitalWoodworker for bespoke woodworking commissions, custom gifts, and design consultations across India." />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content="DigitalWoodworker" />
+    <meta property="og:image" content={import.meta.env.BASE_URL + 'dw_logo.png'} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Contact Me | DigitalWoodworker" />
+    <meta name="twitter:description" content="Contact DigitalWoodworker for bespoke woodworking commissions, custom gifts, and design consultations across India." />
+    <meta name="twitter:image" content={import.meta.env.BASE_URL + 'dw_logo.png'} />
+    <!-- SEO META END -->
     <link rel="icon" type="image/x-icon" href={import.meta.env.BASE_URL + 'favicon.ico'} />
     <link rel="shortcut icon" type="image/x-icon" href={import.meta.env.BASE_URL + 'favicon.ico'} />
-    <meta name="description" content="Contact DigitalWoodworker for custom woodworking commissions and questions." />
     <script data-goatcounter="https://digitalwoodworker.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
   </head>
   <body class="bg-white text-slate-900">

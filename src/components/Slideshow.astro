@@ -5,6 +5,7 @@ import { execSync } from 'child_process';
 
 let slideshowFiles = [];
 const getCaption = (file) => file.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
+const getSlideSrc = (file: string) => `${basePath === '' ? '/' : basePath}Slideshow/${encodeURIComponent(file)}`;
 try {
   const dir = path.join(process.cwd(), 'public', 'Slideshow');
   const manifestPath = path.join(process.cwd(), 'public', 'slideshow-manifest.json');
@@ -57,7 +58,7 @@ try {
               {slideshowFiles.map((file, index) => (
                 <div class={`slideshow-slide absolute inset-0 transition-opacity duration-1000 ${index === 0 ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0'}`} data-image={file} data-caption={getCaption(file)}>
                   <img
-                    src={`${basePath}Slideshow/${encodeURIComponent(file)}`}
+                    src={getSlideSrc(file)}
                     alt={getCaption(file)}
                     class="h-full w-full object-contain will-change-opacity"
                     loading="eager"

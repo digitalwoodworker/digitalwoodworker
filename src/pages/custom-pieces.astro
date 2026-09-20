@@ -6,6 +6,7 @@ import ProcessCards from '../components/ProcessCards.astro';
 
 const title = 'Custom Pieces';
 const copy = 'Explore bespoke custom projects designed from scratch, blending precision craftsmanship with your personal style and functional needs.';
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
 ---
 
 <html lang="en">
@@ -13,6 +14,7 @@ const copy = 'Explore bespoke custom projects designed from scratch, blending pr
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} | DigitalWoodworker</title>
+    <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/x-icon" href={import.meta.env.BASE_URL + 'favicon.ico'} />
     <link rel="shortcut icon" type="image/x-icon" href={import.meta.env.BASE_URL + 'favicon.ico'} />
     <meta name="description" content={copy} />

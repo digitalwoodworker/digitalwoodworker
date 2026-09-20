@@ -14,6 +14,35 @@ const imageFiles = fs.existsSync(galleryPath)
   ? fs.readdirSync(galleryPath).filter((file) => /\.(jpe?g|png|webp|gif|svg)$/i.test(file))
   : [];
 const galleryImages = imageFiles.sort();
+const workDefinitions = [
+  ['Scale Models', 'scale-models', 'Scale-Models'],
+  ['Wood Turning', 'wood-turning', 'Wood-Turning'],
+  ['Boxes', 'boxes', 'Boxes'],
+  ['Chess Set', 'chess-set', 'Chess-Set'],
+  ['Intarsia', 'intarsia', 'Intarsia'],
+  ['Clocks', 'clocks', 'Clocks'],
+  ['Name Boards', 'name-boards', 'Name-Boards'],
+  ['Home Improvement', 'home-improvement', 'Home-Improvement'],
+  ['Miniatures', 'miniatures', 'Miniatures'],
+  ['Keychains', 'keychains', 'Keychains'],
+  ['Jewelry', 'jewelry', 'Jewelry'],
+  ['Many More', 'many-more', 'Many-More'],
+];
+const recommendationWorks = workDefinitions
+  .map(([title, slug, folder]) => {
+    const folderPath = path.join(publicDir, folder);
+    const files = fs.existsSync(folderPath)
+      ? fs.readdirSync(folderPath).filter((file) => /\.(jpe?g|png|webp|gif|svg)$/i.test(file))
+      : [];
+    if (!files.length) return null;
+    const image = files[Math.floor(Math.random() * files.length)];
+    return {
+      title,
+      slug,
+      image: `${basePath}${encodePathSegments(folder)}/${encodeURIComponent(image)}`,
+    };
+  })
+  .filter(Boolean);
 
 let githubOwner = 'digitalwoodworker';
 let githubRepo = 'digitalwoodworker';
@@ -38,6 +67,7 @@ try {
   data-github-owner={githubOwner}
   data-github-repo={githubRepo}
   data-github-branch={githubBranch}
+  data-recommendation-works={JSON.stringify(recommendationWorks)}
 >
   <div class="mx-auto max-w-7xl">
     
@@ -45,7 +75,7 @@ try {
       <div class="portfolio-gallery-grid mt-10">
         {galleryImages.map((image) => (
           <article class="mb-6 inline-block w-full break-inside-avoid overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-lg shadow-slate-900/10">
-            <a href={imageUrl(image)} target="_blank" rel="noreferrer" class="block cursor-pointer">
+            <a href={imageUrl(image)} data-gallery-image data-gallery-index={galleryImages.indexOf(image)} class="block cursor-pointer">
               <img
                 class="w-full h-auto bg-slate-100 transition duration-300 hover:scale-[1.01]"
                 src={imageUrl(image)}
@@ -62,10 +92,36 @@ try {
     )}
   </div>
 
+  <div class="portfolio-lightbox" data-portfolio-lightbox hidden>
+    <div class="portfolio-lightbox-backdrop" data-lightbox-close></div>
+    <div class="portfolio-lightbox-panel" role="dialog" aria-modal="true" aria-label={`${folderName} image viewer`}>
+      <div class="portfolio-lightbox-toolbar">
+        <span class="portfolio-lightbox-count" data-lightbox-count aria-live="polite"></span>
+        <button type="button" class="portfolio-lightbox-button" data-lightbox-close aria-label="Close image viewer" title="Close image viewer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+      </div>
+      <div class="portfolio-lightbox-stage">
+        <button type="button" class="portfolio-lightbox-button portfolio-lightbox-nav" data-lightbox-previous aria-label="Show previous image" title="Previous image">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+        </button>
+        <img class="portfolio-lightbox-image" data-lightbox-image alt="" />
+        <button type="button" class="portfolio-lightbox-button portfolio-lightbox-nav" data-lightbox-next aria-label="Show next image" title="Next image">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6" /></svg>
+        </button>
+      </div>
+      <div class="portfolio-lightbox-end" data-lightbox-end hidden>
+        <p class="portfolio-lightbox-end-title">That&apos;s all for now in {folderName}.</p>
+        <p class="portfolio-lightbox-end-copy">Check out my other works.</p>
+        <div class="portfolio-lightbox-recommendations" data-lightbox-recommendations></div>
+      </div>
+    </div>
+  </div>
+
   <script is:inline>
     (function () {
       const root = document.currentScript?.parentElement;
-      if (!root || !root.dataset.portfolioGallery) return;
+      if (!root || !root.hasAttribute('data-portfolio-gallery')) return;
 
       const folderName = root.dataset.folderName || '';
       const basePath = root.dataset.basePath || '/';
@@ -88,8 +144,8 @@ try {
           article.className = 'mb-6 inline-block w-full break-inside-avoid overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-lg shadow-slate-900/10';
           const anchor = document.createElement('a');
           anchor.href = imageUrl(image);
-          anchor.target = '_blank';
-          anchor.rel = 'noreferrer';
+          anchor.dataset.galleryImage = '';
+          anchor.dataset.galleryIndex = String(images.indexOf(image));
           anchor.className = 'block cursor-pointer';
           const img = document.createElement('img');
           img.className = 'w-full h-auto bg-slate-100 transition duration-300 hover:scale-[1.01]';
@@ -101,6 +157,147 @@ try {
           grid.appendChild(article);
         });
       };
+
+      const lightbox = root.querySelector('[data-portfolio-lightbox]');
+      const lightboxImage = root.querySelector('[data-lightbox-image]');
+      const lightboxCount = root.querySelector('[data-lightbox-count]');
+      const previousButton = root.querySelector('[data-lightbox-previous]');
+      const nextButton = root.querySelector('[data-lightbox-next]');
+      const endPanel = root.querySelector('[data-lightbox-end]');
+      const recommendations = root.querySelector('[data-lightbox-recommendations]');
+      const closeButtons = root.querySelectorAll('[data-lightbox-close]');
+      let activeImages = [];
+      let activeIndex = 0;
+      let previousOverflow = '';
+      let centerEndState = false;
+      let works = [];
+      try {
+        works = JSON.parse(root.dataset.recommendationWorks || '[]');
+      } catch (e) {
+        works = [];
+      }
+
+      const getVisitedWorks = () => {
+        try {
+          return JSON.parse(sessionStorage.getItem('digitalwoodworker-visited-works') || '[]');
+        } catch (e) {
+          return [];
+        }
+      };
+
+      const markCurrentWorkVisited = () => {
+        try {
+          const visited = new Set(getVisitedWorks());
+          visited.add(window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase());
+          sessionStorage.setItem('digitalwoodworker-visited-works', JSON.stringify([...visited]));
+        } catch (e) {
+          // Recommendations still work without session storage.
+        }
+      };
+
+      const renderRecommendations = () => {
+        if (!recommendations) return;
+        const visited = new Set(getVisitedWorks());
+        const otherWorks = works
+          .filter(({ slug }) => !visited.has(slug))
+          .sort(() => Math.random() - 0.5)
+          .slice(0, window.matchMedia('(min-width: 768px)').matches ? 4 : 3);
+        recommendations.innerHTML = '';
+        otherWorks.forEach(({ title, slug, image }) => {
+          const link = document.createElement('a');
+          link.href = `${basePath}${slug}/`;
+          link.className = 'portfolio-lightbox-recommendation';
+          link.title = `View ${title}`;
+          link.setAttribute('aria-label', `View ${title}`);
+          const imageElement = document.createElement('img');
+          imageElement.src = image;
+          imageElement.alt = title;
+          imageElement.loading = 'lazy';
+          link.appendChild(imageElement);
+          const label = document.createElement('span');
+          label.textContent = title;
+          link.appendChild(label);
+          recommendations.appendChild(link);
+        });
+      };
+
+      const recommendationViewport = window.matchMedia('(min-width: 768px)');
+      const refreshRecommendations = () => {
+        if (endPanel && !endPanel.hidden) renderRecommendations();
+      };
+      if (recommendationViewport.addEventListener) {
+        recommendationViewport.addEventListener('change', refreshRecommendations);
+      } else {
+        recommendationViewport.addListener(refreshRecommendations);
+      }
+
+      const showImage = (index, showEndState = true) => {
+        if (!lightbox || !lightboxImage || !activeImages.length) return;
+        activeIndex = Math.max(0, Math.min(index, activeImages.length - 1));
+        if (activeIndex !== activeImages.length - 1) centerEndState = false;
+        const image = activeImages[activeIndex];
+        lightboxImage.src = image.src;
+        lightboxImage.alt = image.alt;
+        if (lightboxCount) lightboxCount.textContent = `${activeIndex + 1} / ${activeImages.length}`;
+        if (previousButton) previousButton.hidden = activeImages.length < 2;
+        if (nextButton) nextButton.hidden = activeImages.length < 2;
+        if (endPanel) endPanel.hidden = true;
+        lightbox.querySelector('.portfolio-lightbox-panel')?.classList.remove('portfolio-lightbox-centered');
+        if (activeIndex === activeImages.length - 1 && showEndState) showEndOfGallery();
+      };
+
+      const showEndOfGallery = () => {
+        if (!endPanel) return;
+        if (nextButton) nextButton.hidden = true;
+        if (centerEndState) lightbox.querySelector('.portfolio-lightbox-panel')?.classList.add('portfolio-lightbox-centered');
+        renderRecommendations();
+        endPanel.hidden = false;
+      };
+
+      const openLightbox = (index) => {
+        if (!lightbox) return;
+        activeImages = Array.from(root.querySelectorAll('[data-gallery-image]')).map((anchor) => ({
+          src: anchor.href,
+          alt: anchor.querySelector('img')?.alt || '',
+        }));
+        if (!activeImages.length) return;
+        markCurrentWorkVisited();
+        centerEndState = index === activeImages.length - 1;
+        previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        lightbox.hidden = false;
+        showImage(index, !centerEndState);
+        closeButtons[1]?.focus();
+      };
+
+      const closeLightbox = () => {
+        if (!lightbox) return;
+        lightbox.hidden = true;
+        document.body.style.overflow = previousOverflow;
+      };
+
+      grid.addEventListener('click', (event) => {
+        const anchor = event.target.closest('[data-gallery-image]');
+        if (!anchor) return;
+        event.preventDefault();
+        openLightbox(Number(anchor.dataset.galleryIndex) || 0);
+      });
+
+      closeButtons.forEach((button) => button.addEventListener('click', closeLightbox));
+      previousButton?.addEventListener('click', () => showImage(activeIndex - 1));
+      nextButton?.addEventListener('click', () => {
+        if (activeIndex < activeImages.length - 1) showImage(activeIndex + 1);
+        else showEndOfGallery();
+      });
+      document.addEventListener('keydown', (event) => {
+        if (!lightbox || lightbox.hidden) return;
+        if (event.key === 'Escape') closeLightbox();
+        if (event.key === 'ArrowLeft') showImage(activeIndex - 1);
+        if (event.key === 'ArrowRight') {
+          if (activeIndex < activeImages.length - 1) showImage(activeIndex + 1);
+          else showEndOfGallery();
+        }
+      });
 
       const loadFromGitHub = async () => {
         try {
@@ -118,12 +315,13 @@ try {
         }
       };
 
+      markCurrentWorkVisited();
       loadFromGitHub();
     })();
   </script>
 </section>
 
-<style>
+<style is:global>
   .portfolio-gallery-grid {
     column-count: 1;
     column-gap: 1.5rem;
@@ -144,6 +342,248 @@ try {
   @media (min-width: 1400px) {
     .portfolio-gallery-grid {
       column-count: 4;
+    }
+  }
+
+  .portfolio-lightbox[hidden] {
+    display: none;
+  }
+
+  .portfolio-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    color: white;
+  }
+
+  .portfolio-lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgb(2 6 23 / 96%);
+  }
+
+  .portfolio-lightbox-panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: min(100%, 96rem);
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .portfolio-lightbox-panel.portfolio-lightbox-centered {
+    justify-content: center;
+  }
+
+  .portfolio-lightbox-centered .portfolio-lightbox-toolbar {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    left: 1rem;
+  }
+
+  .portfolio-lightbox-centered .portfolio-lightbox-stage {
+    flex: 0 0 auto;
+  }
+
+  .portfolio-lightbox-centered .portfolio-lightbox-end {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+    z-index: 2;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    border: 1px solid rgb(255 255 255 / 18%);
+    border-radius: 1.25rem;
+    background: rgb(2 6 23 / 82%);
+    padding: 1rem;
+    backdrop-filter: blur(12px);
+  }
+
+  .portfolio-lightbox-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .portfolio-lightbox-count {
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .portfolio-lightbox-stage {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 0;
+  }
+
+  .portfolio-lightbox-image {
+    min-width: 0;
+    flex: 1 1 auto;
+    max-height: calc(100vh - 8rem);
+    max-width: min(100%, 80rem);
+    object-fit: contain;
+  }
+
+  .portfolio-lightbox-end[hidden] {
+    display: none;
+  }
+
+  .portfolio-lightbox-end {
+    padding: 1rem 0 0.5rem;
+    text-align: center;
+  }
+
+  .portfolio-lightbox-end-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .portfolio-lightbox-end-copy {
+    margin-top: 0.35rem;
+    color: rgb(203 213 225);
+    font-size: 0.9rem;
+  }
+
+  .portfolio-lightbox-recommendations {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+    width: min(100%, 48rem);
+    margin-top: 0.9rem;
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .portfolio-lightbox-recommendation {
+    position: relative;
+    display: block;
+    aspect-ratio: 1 / 0.78;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 25%);
+    border-radius: 1.25rem;
+    background: rgb(15 23 42);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: background-color 150ms ease, border-color 150ms ease;
+  }
+
+  .portfolio-lightbox-recommendation:hover,
+  .portfolio-lightbox-recommendation:focus-visible {
+    border-color: rgb(255 255 255 / 60%);
+    outline: none;
+  }
+
+  .portfolio-lightbox-recommendation::after {
+    position: absolute;
+    inset: 45% 0 0;
+    background: linear-gradient(transparent, rgb(2 6 23 / 90%));
+    content: '';
+  }
+
+  .portfolio-lightbox-recommendation img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 180ms ease;
+  }
+
+  .portfolio-lightbox-recommendation:hover img,
+  .portfolio-lightbox-recommendation:focus-visible img {
+    transform: scale(1.05);
+  }
+
+  .portfolio-lightbox-recommendation span {
+    position: absolute;
+    right: 0.65rem;
+    bottom: 0.55rem;
+    left: 0.65rem;
+    z-index: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .portfolio-lightbox-button {
+    display: inline-flex;
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgb(255 255 255 / 25%);
+    border-radius: 999px;
+    background: rgb(15 23 42 / 80%);
+    padding: 0.7rem 1rem;
+    color: white;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: background-color 150ms ease, border-color 150ms ease;
+  }
+
+  .portfolio-lightbox-button[data-lightbox-close] {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 3;
+  }
+
+  .portfolio-lightbox-button:hover,
+  .portfolio-lightbox-button:focus-visible {
+    border-color: rgb(255 255 255 / 60%);
+    background: rgb(51 65 85 / 95%);
+    outline: none;
+  }
+
+  .portfolio-lightbox-button svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  @media (max-width: 640px) {
+    .portfolio-lightbox-panel {
+      padding: 0.75rem;
+    }
+
+    .portfolio-lightbox-stage {
+      gap: 0.5rem;
+    }
+
+    .portfolio-lightbox-nav {
+      padding: 0.65rem;
+    }
+
+    .portfolio-lightbox-button {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+
+    .portfolio-lightbox-recommendation {
+      aspect-ratio: 1 / 0.9;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .portfolio-lightbox-recommendations {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
 </style>

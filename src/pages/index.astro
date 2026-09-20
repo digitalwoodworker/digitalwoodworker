@@ -6,41 +6,20 @@ import Hero from '../components/Hero.astro';
 //import ProcessCards from '../components/ProcessCards.astro';
 import AboutSection from '../components/AboutSection.astro';
 import PortfolioGrid from '../components/PortfolioGrid.astro';
+import SEO from '../components/SEO.astro';
 //import ContactSection from '../components/ContactSection.astro';
 import Footer from '../components/Footer.astro';
 
-const canonicalUrl = new URL('/', Astro.site).toString();
-const ogImageUrl = new URL('/Chess-Set/Chessset.jpg', Astro.site).toString();
 ---
 
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- SEO META START -->
-    <title>DigitalWoodworker | Bespoke Woodcrafts in India</title>
-    <meta name="description" content="Custom woodworking studio in India crafting high-end scale models, chess sets, intarsia, clocks, and fine wooden accessories. Hand-finished with uncompromised precision." />
-    <meta name="robots" content="index, follow" />
-    <meta name="keywords" content="custom woodworking, custom wood work in Kerala, custom wood work in Trivandrum, custom woodwork Kerala, custom woodwork Trivandrum, handcrafted woodwork, wood artisan Kerala, bespoke woodwork Trivandrum, scale models, chess sets, intarsia, bespoke clocks, wood artisan, woodart" />
-    <link rel="canonical" href={canonicalUrl} />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="DigitalWoodworker" />
-    <meta property="og:description" content="Custom woodworking studio crafting high-end scale models, chess sets, intarsia, clocks, and fine wooden accessories. Hand-finished with uncompromised precision." />
-    <meta property="og:url" content={canonicalUrl} />
-    <meta property="og:site_name" content="DigitalWoodworker" />
-    <meta property="og:image" content={ogImageUrl} />
-    <meta property="og:image:secure_url" content={ogImageUrl} />
-    <meta property="og:image:type" content="image/jpeg" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="DigitalWoodworker" />
-    <meta name="twitter:description" content="Custom woodworking studio crafting high-end scale models, chess sets, intarsia, clocks, and fine wooden accessories. Hand-finished with uncompromised precision." />
-    <meta name="twitter:image" content={ogImageUrl} />
-    <!-- SEO META END -->
-    <link rel="icon" type="image/x-icon" href={import.meta.env.BASE_URL + 'favicon.ico'} />
-    <link rel="shortcut icon" type="image/x-icon" href={import.meta.env.BASE_URL + 'favicon.ico'} />
-    <script data-goatcounter="https://digitalwoodworker.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+    <SEO
+      title="DigitalWoodworker | Bespoke Woodcrafts in India"
+      description="Custom woodworking studio in India crafting high-end scale models, chess sets, intarsia, clocks, and fine wooden accessories. Hand-finished with uncompromised precision."
+      keywords="custom woodworking, custom wood work in Kerala, custom wood work in Trivandrum, custom woodwork Kerala, custom woodwork Trivandrum, handcrafted woodwork, wood artisan Kerala, bespoke woodwork Trivandrum, scale models, chess sets, intarsia, bespoke clocks, wood artisan, woodart"
+      image="/Chess-Set/Chessset.jpg"
+    />
   </head>
   <body class="bg-white text-slate-900">
     <Header />

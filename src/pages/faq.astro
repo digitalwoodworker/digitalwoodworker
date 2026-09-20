@@ -2,45 +2,16 @@
 import "../styles/global.css";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-
-const canonicalUrl = new URL('/faq/', Astro.site).toString();
+import SEO from "../components/SEO.astro";
 ---
 
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- SEO META START -->
-    <title>FAQ | DigitalWoodworker</title>
-    <meta name="description" content="Read frequently asked questions about commissions, materials, timelines, and the custom woodworking process at DigitalWoodworker." />
-    <meta name="robots" content="index, follow" />
-    <meta name="keywords" content="FAQ wood commissions, custom woodworking questions, project timeline, woodworker process, artisan questions" />
-    <link rel="canonical" href={canonicalUrl} />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="FAQ | DigitalWoodworker" />
-    <meta property="og:description" content="Read frequently asked questions about commissions, materials, timelines, and the custom woodworking process at DigitalWoodworker." />
-    <meta property="og:url" content={canonicalUrl} />
-    <meta property="og:site_name" content="DigitalWoodworker" />
-    <meta property="og:image" content={import.meta.env.BASE_URL + 'dw_logo.png'} />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="FAQ | DigitalWoodworker" />
-    <meta name="twitter:description" content="Read frequently asked questions about commissions, materials, timelines, and the custom woodworking process at DigitalWoodworker." />
-    <meta name="twitter:image" content={import.meta.env.BASE_URL + 'dw_logo.png'} />
-    <!-- SEO META END -->
-    <link
-      rel="icon"
-      type="image/x-icon"
-      href={import.meta.env.BASE_URL + "favicon.ico"}
+    <SEO
+      title="FAQ | DigitalWoodworker"
+      description="Read frequently asked questions about commissions, materials, timelines, and the custom woodworking process at DigitalWoodworker."
+      keywords="FAQ wood commissions, custom woodworking questions, project timeline, woodworker process, artisan questions"
     />
-    <link
-      rel="shortcut icon"
-      type="image/x-icon"
-      href={import.meta.env.BASE_URL + "favicon.ico"}
-    />
-    <script
-      data-goatcounter="https://digitalwoodworker.goatcounter.com/count"
-      async
-      src="//gc.zgo.at/count.js"></script>
   </head>
   <body class="bg-white text-slate-900">
     <Header />
@@ -101,7 +72,6 @@ const canonicalUrl = new URL('/faq/', Astro.site).toString();
           ].map((item, index) => (
             <details
               class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-6 shadow-sm"
-              key={index}
             >
               <summary class="cursor-pointer text-lg font-semibold text-slate-950 list-none marker:hidden">
                 {item.question}

@@ -131,6 +131,7 @@ try {
       const owner = root.dataset.githubOwner || 'digitalwoodworker';
       const repo = root.dataset.githubRepo || 'digitalwoodworker';
       const branch = root.dataset.githubBranch || 'master';
+      const workSlug = folderName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       const grid = root.querySelector('.portfolio-gallery-grid');
       const emptyState = root.querySelector('.portfolio-gallery-empty');
       if (!folderName || !grid) return;
@@ -161,6 +162,7 @@ try {
       const lightbox = root.querySelector('[data-portfolio-lightbox]');
       const lightboxImage = root.querySelector('[data-lightbox-image]');
       const lightboxCount = root.querySelector('[data-lightbox-count]');
+      const lightboxStage = root.querySelector('.portfolio-lightbox-stage');
       const previousButton = root.querySelector('[data-lightbox-previous]');
       const nextButton = root.querySelector('[data-lightbox-next]');
       const endPanel = root.querySelector('[data-lightbox-end]');
@@ -170,6 +172,17 @@ try {
       let activeIndex = 0;
       let previousOverflow = '';
       let centerEndState = false;
+      let touchStartX = 0;
+      let touchStartY = 0;
+
+      const trackEvent = (name, title) => {
+        if (typeof window.goatcounter?.count !== 'function') return;
+        window.goatcounter.count({
+          path: `gallery/${name}/${workSlug}`,
+          title,
+          event: true,
+        });
+      };
       let works = [];
       try {
         works = JSON.parse(root.dataset.recommendationWorks || '[]');
@@ -209,6 +222,9 @@ try {
           link.className = 'portfolio-lightbox-recommendation';
           link.title = `View ${title}`;
           link.setAttribute('aria-label', `View ${title}`);
+          link.addEventListener('click', () => {
+            trackEvent('recommendation', `Opened recommended work ${title}`);
+          });
           const imageElement = document.createElement('img');
           imageElement.src = image;
           imageElement.alt = title;
@@ -254,6 +270,21 @@ try {
         endPanel.hidden = false;
       };
 
+      const showPreviousImage = () => {
+        trackEvent('previous', `Previous image in ${folderName}`);
+        showImage(activeIndex - 1);
+      };
+
+      const showNextImage = () => {
+        if (activeIndex < activeImages.length - 1) {
+          trackEvent('next', `Next image in ${folderName}`);
+          showImage(activeIndex + 1);
+        } else {
+          trackEvent('end', `Reached end of ${folderName}`);
+          showEndOfGallery();
+        }
+      };
+
       const openLightbox = (index) => {
         if (!lightbox) return;
         activeImages = Array.from(root.querySelectorAll('[data-gallery-image]')).map((anchor) => ({
@@ -266,6 +297,7 @@ try {
         previousOverflow = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
         lightbox.hidden = false;
+        trackEvent('open', `Opened ${folderName} image ${index + 1}`);
         showImage(index, !centerEndState);
         closeButtons[1]?.focus();
       };
@@ -274,6 +306,7 @@ try {
         if (!lightbox) return;
         lightbox.hidden = true;
         document.body.style.overflow = previousOverflow;
+        trackEvent('close', `Closed ${folderName} image viewer`);
       };
 
       grid.addEventListener('click', (event) => {
@@ -284,18 +317,31 @@ try {
       });
 
       closeButtons.forEach((button) => button.addEventListener('click', closeLightbox));
-      previousButton?.addEventListener('click', () => showImage(activeIndex - 1));
-      nextButton?.addEventListener('click', () => {
-        if (activeIndex < activeImages.length - 1) showImage(activeIndex + 1);
-        else showEndOfGallery();
-      });
+      previousButton?.addEventListener('click', showPreviousImage);
+      nextButton?.addEventListener('click', showNextImage);
+      lightboxStage?.addEventListener('touchstart', (event) => {
+        if (lightbox?.hidden || event.touches.length !== 1) return;
+        touchStartX = event.touches[0].clientX;
+        touchStartY = event.touches[0].clientY;
+      }, { passive: true });
+      lightboxStage?.addEventListener('touchend', (event) => {
+        if (lightbox?.hidden || event.changedTouches.length !== 1) return;
+        const touchEndX = event.changedTouches[0].clientX;
+        const touchEndY = event.changedTouches[0].clientY;
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = touchEndY - touchStartY;
+        if (Math.abs(deltaX) < 50 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+        if (deltaX < 0) showNextImage();
+        else showPreviousImage();
+      }, { passive: true });
       document.addEventListener('keydown', (event) => {
         if (!lightbox || lightbox.hidden) return;
         if (event.key === 'Escape') closeLightbox();
-        if (event.key === 'ArrowLeft') showImage(activeIndex - 1);
+        if (event.key === 'ArrowLeft') {
+          showPreviousImage();
+        }
         if (event.key === 'ArrowRight') {
-          if (activeIndex < activeImages.length - 1) showImage(activeIndex + 1);
-          else showEndOfGallery();
+          showNextImage();
         }
       });
 
@@ -426,6 +472,7 @@ try {
     justify-content: space-between;
     gap: 1rem;
     padding: 1rem 0;
+    touch-action: pan-y;
   }
 
   .portfolio-lightbox-image {

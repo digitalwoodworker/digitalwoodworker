@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-export async function get() {
+export async function GET() {
   try {
     const dir = path.join(process.cwd(), 'public', 'Slideshow');
     const files = fs.readdirSync(dir).filter((f) => /\.(jpe?g|png|webp|avif|gif)$/i.test(f)).sort();

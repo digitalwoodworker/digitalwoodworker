@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import SEO from '../components/SEO.astro';
 import fs from 'fs';
 import path from 'path';
 
@@ -11,7 +12,6 @@ const withBase = (href: string) => {
   const normalizedHref = href === '/' ? '/' : `${href.replace(/\/+$/, '')}/`;
   return basePath === '/' ? normalizedHref : `${basePath.replace(/\/+$/, '')}${normalizedHref}`;
 };
-const canonicalUrl = new URL('/work-and-commissions/', Astro.site).toString();
 const cardFolders: Record<string, string> = {
   'scale-models': 'Scale-Models',
   'wood-turning': 'Wood-Turning',
@@ -19,6 +19,12 @@ const cardFolders: Record<string, string> = {
   'chess-set': 'Chess-Set',
   intarsia: 'Intarsia',
   clocks: 'Clocks',
+  'name-boards': 'Name-Boards',
+  'home-improvement': 'Home-Improvement',
+  miniatures: 'Miniatures',
+  keychains: 'Keychains',
+  jewelry: 'Jewelry',
+  'many-more': 'Many-More',
 };
 
 function randomCardImage(folder: string) {
@@ -36,36 +42,30 @@ const cards = [
   { href: '/chess-set', title: 'Chess Set', description: 'Timeless battles, played out on handcrafted grain.' },
   { href: '/intarsia', title: 'Intarsia', description: 'Painting with natural wood grains, one piece at a time.' },
   { href: '/clocks', title: 'Clocks', description: 'Marking time through the timeless beauty of natural wood.' },
+  { href: '/name-boards', title: 'Name Boards', description: 'Personalized signs shaped with character, grain, and care.' },
+  { href: '/home-improvement', title: 'Home Improvement', description: 'Practical upgrades made beautiful through thoughtful woodwork.' },
+  { href: '/miniatures', title: 'Miniatures', description: 'Small-scale builds with an eye for every fine detail.' },
+  { href: '/keychains', title: 'Keychains', description: 'Pocket-sized keepsakes crafted for everyday use.' },
+  { href: '/jewelry', title: 'Jewelry', description: 'Lightweight wooden pieces with a quietly distinctive finish.' },
+  { href: '/many-more', title: 'Everything Else', description: 'More one-of-a-kind projects from the workshop.' },
+  { href: '/custom-pieces', title: 'Custom Pieces', description: 'A piece designed from scratch around your idea.' },
 ].map((card) => ({
   ...card,
   resolvedHref: withBase(card.href),
-  image: randomCardImage(cardFolders[card.href.slice(1)]),
+  image: card.href === '/custom-pieces'
+    ? `${basePath}confused_customer.webp`
+    : randomCardImage(cardFolders[card.href.slice(1)]),
 }));
 ---
 
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Custom Woodworking & Commissions | DigitalWoodworker</title>
-    <meta name="description" content="Explore custom woodworking commissions from DigitalWoodworker, including handcrafted scale models, wood turning, clocks, boxes, intarsia, and bespoke furniture." />
-    <meta name="robots" content="index, follow" />
-    <meta name="keywords" content="custom woodworking, commissions, handcrafted woodwork, scale models, wood turning, bespoke furniture" />
-    <link rel="canonical" href={canonicalUrl} />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Custom Woodworking & Commissions | DigitalWoodworker" />
-    <meta property="og:description" content="Explore custom woodworking commissions from DigitalWoodworker, including handcrafted scale models, wood turning, clocks, boxes, intarsia, and bespoke furniture." />
-    <meta property="og:url" content={canonicalUrl} />
-    <meta property="og:site_name" content="DigitalWoodworker" />
-    <meta property="og:image" content={withBase('/dw_logo.png')} />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Custom Woodworking & Commissions | DigitalWoodworker" />
-    <meta name="twitter:description" content="Explore custom woodworking commissions from DigitalWoodworker, including handcrafted scale models, wood turning, clocks, boxes, intarsia, and bespoke furniture." />
-    <meta name="twitter:image" content={withBase('/dw_logo.png')} />
-    <!-- TODO: Update the title and description copy here when you want to refine the SEO wording for this page. -->
-    <link rel="icon" type="image/x-icon" href={import.meta.env.BASE_URL + 'favicon.ico'} />
-    <link rel="shortcut icon" type="image/x-icon" href={import.meta.env.BASE_URL + 'favicon.ico'} />
-    <script data-goatcounter="https://digitalwoodworker.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+    <SEO
+      title="Custom Woodworking & Commissions | DigitalWoodworker"
+      description="Explore custom woodworking commissions from DigitalWoodworker, including handcrafted scale models, wood turning, clocks, boxes, intarsia, and bespoke furniture."
+      keywords="custom woodworking, commissions, handcrafted woodwork, scale models, wood turning, bespoke furniture"
+      image="/dw_logo.png"
+    />
   </head>
   <body class="bg-white text-slate-900">
     <Header />

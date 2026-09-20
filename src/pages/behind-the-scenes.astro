@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import SEO from '../components/SEO.astro';
 
 const basePath = import.meta.env.BASE_URL === '/' ? '/' : import.meta.env.BASE_URL;
 
@@ -48,19 +49,14 @@ const btsSections = [
   },
 ];
 
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
 ---
 
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Behind the Scenes | DigitalWoodworker</title>
-    <link rel="canonical" href={canonicalUrl} />
-    <link rel="icon" type="image/x-icon" href={import.meta.env.BASE_URL + 'favicon.ico'} />
-    <link rel="shortcut icon" type="image/x-icon" href={import.meta.env.BASE_URL + 'favicon.ico'} />
-    <meta name="description" content="Get a behind-the-scenes look at the craftsmanship and workshop process." />
-    <script data-goatcounter="https://digitalwoodworker.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+    <SEO
+      title="Behind the Scenes | DigitalWoodworker"
+      description="Get a behind-the-scenes look at the craftsmanship and workshop process."
+    />
   </head>
   <body class="bg-white text-slate-900">
     <Header />

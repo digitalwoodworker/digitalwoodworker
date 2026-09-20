@@ -2,12 +2,14 @@
 import { defineConfig } from 'astro/config';
 
 import tailwindcss from '@tailwindcss/vite';
+import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://digitalwoodworker.in',
   base: '/',
-  trailingSlash: 'always',
+  trailingSlash: 'ignore',
+  integrations: [sitemap()],
   vite: {
     plugins: [tailwindcss()]
   }

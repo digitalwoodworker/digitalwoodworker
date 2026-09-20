@@ -110,6 +110,17 @@ try {
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6" /></svg>
         </button>
       </div>
+      <div class="portfolio-lightbox-tools" role="group" aria-label="Image zoom controls">
+        <button type="button" class="portfolio-lightbox-button" data-lightbox-zoom-out aria-label="Zoom out" title="Zoom out">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.8 4.5a6.3 6.3 0 1 0 0 12.6 6.3 6.3 0 0 0 0-12.6ZM15.4 15.4 20 20M8.2 10.8h5.2" /></svg>
+        </button>
+        <button type="button" class="portfolio-lightbox-button" data-lightbox-fit aria-label="Fit image to screen" title="Fit image to screen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3M9 9h6v6H9z" /></svg>
+        </button>
+        <button type="button" class="portfolio-lightbox-button" data-lightbox-zoom-in aria-label="Zoom in" title="Zoom in">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.8 4.5a6.3 6.3 0 1 0 0 12.6 6.3 6.3 0 0 0 0-12.6ZM15.4 15.4 20 20M8.2 10.8h5.2M10.8 8.2v5.2" /></svg>
+        </button>
+      </div>
       <div class="portfolio-lightbox-end" data-lightbox-end hidden>
         <p class="portfolio-lightbox-end-title">That&apos;s all for now in {folderName}.</p>
         <p class="portfolio-lightbox-end-copy">Check out my other works.</p>
@@ -165,6 +176,9 @@ try {
       const lightboxStage = root.querySelector('.portfolio-lightbox-stage');
       const previousButton = root.querySelector('[data-lightbox-previous]');
       const nextButton = root.querySelector('[data-lightbox-next]');
+      const zoomOutButton = root.querySelector('[data-lightbox-zoom-out]');
+      const fitButton = root.querySelector('[data-lightbox-fit]');
+      const zoomInButton = root.querySelector('[data-lightbox-zoom-in]');
       const endPanel = root.querySelector('[data-lightbox-end]');
       const recommendations = root.querySelector('[data-lightbox-recommendations]');
       const closeButtons = root.querySelectorAll('[data-lightbox-close]');
@@ -174,6 +188,14 @@ try {
       let centerEndState = false;
       let touchStartX = 0;
       let touchStartY = 0;
+      let zoomScale = 1;
+      let panX = 0;
+      let panY = 0;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let dragStartPanX = 0;
+      let dragStartPanY = 0;
+      let isDragging = false;
 
       const trackEvent = (name, title) => {
         if (typeof window.goatcounter?.count !== 'function') return;
@@ -247,13 +269,27 @@ try {
         recommendationViewport.addListener(refreshRecommendations);
       }
 
+      const applyImageTransform = () => {
+        if (!lightboxImage || !lightboxStage) return;
+        const maxPanX = Math.max(0, (lightboxImage.offsetWidth * zoomScale - lightboxStage.clientWidth) / 2);
+        const maxPanY = Math.max(0, (lightboxImage.offsetHeight * zoomScale - lightboxStage.clientHeight) / 2);
+        panX = Math.max(-maxPanX, Math.min(panX, maxPanX));
+        panY = Math.max(-maxPanY, Math.min(panY, maxPanY));
+        lightboxImage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+        lightboxStage.classList.toggle('portfolio-lightbox-is-zoomed', zoomScale > 1);
+      };
+
       const showImage = (index, showEndState = true) => {
         if (!lightbox || !lightboxImage || !activeImages.length) return;
         activeIndex = Math.max(0, Math.min(index, activeImages.length - 1));
         if (activeIndex !== activeImages.length - 1) centerEndState = false;
         const image = activeImages[activeIndex];
+        zoomScale = 1;
+        panX = 0;
+        panY = 0;
         lightboxImage.src = image.src;
         lightboxImage.alt = image.alt;
+        applyImageTransform();
         if (lightboxCount) lightboxCount.textContent = `${activeIndex + 1} / ${activeImages.length}`;
         if (previousButton) previousButton.hidden = activeImages.length < 2;
         if (nextButton) nextButton.hidden = activeImages.length < 2;
@@ -283,6 +319,15 @@ try {
           trackEvent('end', `Reached end of ${folderName}`);
           showEndOfGallery();
         }
+      };
+
+      const setZoom = (scale) => {
+        zoomScale = Math.max(1, Math.min(scale, 4));
+        if (zoomScale === 1) {
+          panX = 0;
+          panY = 0;
+        }
+        applyImageTransform();
       };
 
       const openLightbox = (index) => {
@@ -319,13 +364,42 @@ try {
       closeButtons.forEach((button) => button.addEventListener('click', closeLightbox));
       previousButton?.addEventListener('click', showPreviousImage);
       nextButton?.addEventListener('click', showNextImage);
+      zoomOutButton?.addEventListener('click', () => setZoom(zoomScale - 0.5));
+      fitButton?.addEventListener('click', () => setZoom(1));
+      zoomInButton?.addEventListener('click', () => setZoom(zoomScale + 0.5));
+      lightboxStage?.addEventListener('pointerdown', (event) => {
+        if (zoomScale === 1 || event.target !== lightboxImage) return;
+        event.preventDefault();
+        isDragging = true;
+        dragStartX = event.clientX;
+        dragStartY = event.clientY;
+        dragStartPanX = panX;
+        dragStartPanY = panY;
+        lightboxStage.setPointerCapture(event.pointerId);
+        lightboxImage.classList.add('portfolio-lightbox-is-dragging');
+      });
+      lightboxStage?.addEventListener('pointermove', (event) => {
+        if (!isDragging) return;
+        event.preventDefault();
+        panX = dragStartPanX + event.clientX - dragStartX;
+        panY = dragStartPanY + event.clientY - dragStartY;
+        applyImageTransform();
+      });
+      const stopDragging = (event) => {
+        if (!isDragging) return;
+        isDragging = false;
+        lightboxStage?.releasePointerCapture?.(event.pointerId);
+        lightboxImage?.classList.remove('portfolio-lightbox-is-dragging');
+      };
+      lightboxStage?.addEventListener('pointerup', stopDragging);
+      lightboxStage?.addEventListener('pointercancel', stopDragging);
       lightboxStage?.addEventListener('touchstart', (event) => {
-        if (lightbox?.hidden || event.touches.length !== 1) return;
+        if (lightbox?.hidden || zoomScale > 1 || event.touches.length !== 1) return;
         touchStartX = event.touches[0].clientX;
         touchStartY = event.touches[0].clientY;
       }, { passive: true });
       lightboxStage?.addEventListener('touchend', (event) => {
-        if (lightbox?.hidden || event.changedTouches.length !== 1) return;
+        if (lightbox?.hidden || zoomScale > 1 || event.changedTouches.length !== 1) return;
         const touchEndX = event.changedTouches[0].clientX;
         const touchEndY = event.changedTouches[0].clientY;
         const deltaX = touchEndX - touchStartX;
@@ -417,6 +491,7 @@ try {
     display: flex;
     width: min(100%, 96rem);
     flex-direction: column;
+    justify-content: center;
     padding: 1rem;
   }
 
@@ -451,10 +526,55 @@ try {
   }
 
   .portfolio-lightbox-toolbar {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    left: 1rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
+  }
+
+  .portfolio-lightbox-tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    align-self: center;
+    margin: 0.25rem auto 0;
+    border: 1px solid rgb(255 255 255 / 25%);
+    border-radius: 999px;
+    background: rgb(15 23 42 / 78%);
+    padding: 0.25rem;
+    backdrop-filter: blur(8px);
+  }
+
+  .portfolio-lightbox-tools .portfolio-lightbox-button {
+    position: relative;
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .portfolio-lightbox-tools .portfolio-lightbox-button:not(:last-child)::after {
+    position: absolute;
+    top: 25%;
+    right: -0.3rem;
+    width: 1px;
+    height: 50%;
+    background: rgb(255 255 255 / 28%);
+    content: '';
+  }
+
+  .portfolio-lightbox-tools .portfolio-lightbox-button:hover,
+  .portfolio-lightbox-tools .portfolio-lightbox-button:focus-visible {
+    border-color: rgb(255 255 255 / 25%);
+    background: rgb(255 255 255 / 14%);
+  }
+
+  .portfolio-lightbox-tools .portfolio-lightbox-button svg {
+    width: 1.35rem;
+    height: 1.35rem;
+    flex-shrink: 0;
   }
 
   .portfolio-lightbox-count {
@@ -465,22 +585,49 @@ try {
   }
 
   .portfolio-lightbox-stage {
+    position: relative;
     display: flex;
+    align-self: center;
+    box-sizing: border-box;
+    width: fit-content;
+    max-width: 100%;
     min-height: 0;
-    flex: 1;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 1rem 0;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 18%);
+    border-radius: 1rem;
+    background: rgb(15 23 42 / 45%);
     touch-action: pan-y;
   }
 
+  .portfolio-lightbox-stage.portfolio-lightbox-is-zoomed {
+    touch-action: none;
+    user-select: none;
+  }
+
   .portfolio-lightbox-image {
+    display: block;
+    width: auto;
+    height: auto;
     min-width: 0;
-    flex: 1 1 auto;
     max-height: calc(100vh - 8rem);
-    max-width: min(100%, 80rem);
+    max-width: calc(100vw - 2rem);
     object-fit: contain;
+    border-radius: inherit;
+    cursor: default;
+    transform-origin: center center;
+    transition: transform 180ms ease;
+  }
+
+  .portfolio-lightbox-is-zoomed .portfolio-lightbox-image {
+    cursor: grab;
+  }
+
+  .portfolio-lightbox-is-zoomed .portfolio-lightbox-image.portfolio-lightbox-is-dragging {
+    cursor: grabbing;
+    transition: none;
   }
 
   .portfolio-lightbox-end[hidden] {
@@ -588,6 +735,24 @@ try {
     z-index: 3;
   }
 
+  .portfolio-lightbox-nav {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    transform: translateY(-50%);
+    border-color: rgb(255 255 255 / 35%);
+    background: rgb(15 23 42 / 48%);
+    backdrop-filter: blur(6px);
+  }
+
+  .portfolio-lightbox-nav[data-lightbox-previous] {
+    left: 0.75rem;
+  }
+
+  .portfolio-lightbox-nav[data-lightbox-next] {
+    right: 0.75rem;
+  }
+
   .portfolio-lightbox-button:hover,
   .portfolio-lightbox-button:focus-visible {
     border-color: rgb(255 255 255 / 60%);
@@ -610,17 +775,33 @@ try {
       padding: 0.75rem;
     }
 
-    .portfolio-lightbox-stage {
-      gap: 0.5rem;
+    .portfolio-lightbox-nav {
+      width: 2.75rem;
+      height: 2.75rem;
+      padding: 0.65rem;
     }
 
-    .portfolio-lightbox-nav {
-      padding: 0.65rem;
+    .portfolio-lightbox-nav[data-lightbox-previous] {
+      left: 0.5rem;
+    }
+
+    .portfolio-lightbox-nav[data-lightbox-next] {
+      right: 0.5rem;
     }
 
     .portfolio-lightbox-button {
       width: 2.75rem;
       height: 2.75rem;
+    }
+
+    .portfolio-lightbox-tools .portfolio-lightbox-button svg {
+      width: 1.25rem;
+      height: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .portfolio-lightbox-tools {
+      gap: 0.25rem;
     }
 
     .portfolio-lightbox-recommendation {

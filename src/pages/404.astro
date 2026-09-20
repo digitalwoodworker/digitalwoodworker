@@ -1,0 +1,37 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import SEO from '../components/SEO.astro';
+---
+
+<html lang="en">
+  <head>
+    <SEO
+      title="Page Not Found | DigitalWoodworker"
+      description="The page you are looking for could not be found. Explore DigitalWoodworker's custom woodworking portfolio or get in touch."
+      noindex
+    />
+  </head>
+  <body class="bg-white text-slate-900">
+    <Header />
+    <main class="flex min-h-[calc(100vh-16rem)] items-center justify-center px-6 py-24">
+      <section class="w-full max-w-3xl text-center">
+        <p class="text-sm font-semibold uppercase tracking-[0.4em] text-amber-600">404</p>
+        <h1 class="mt-5 text-4xl font-semibold tracking-tight text-slate-950 sm:text-6xl">This piece is still being carved.</h1>
+        <p class="mx-auto mt-6 max-w-xl text-base leading-8 text-slate-600 sm:text-lg">
+          That page could not be found. Browse the latest work or get in touch to start something custom.
+        </p>
+        <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <a href="/work-and-commissions/" class="inline-flex min-h-12 items-center justify-center rounded-full bg-slate-950 px-7 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2">
+            Explore the work
+          </a>
+          <a href="/contact-me/" class="inline-flex min-h-12 items-center justify-center rounded-full border border-slate-300 px-7 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-slate-900 transition hover:border-slate-950 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2">
+            Start a commission
+          </a>
+        </div>
+      </section>
+    </main>
+    <Footer />
+  </body>
+</html>

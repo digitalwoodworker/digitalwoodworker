@@ -8,10 +8,11 @@ const basePath = import.meta.env.BASE_URL;
 const encodePathSegments = (value: string) => value.split('/').map((segment) => encodeURIComponent(segment)).join('/');
 const folderPath = encodePathSegments(folderName);
 const imageUrl = (image: string) => `${basePath}${folderPath}/${encodeURIComponent(image)}`;
+const imageAlt = `A handcrafted ${folderName.toLowerCase()} woodworking piece by DigitalWoodworker`;
 const publicDir = path.join(process.cwd(), 'public');
 const galleryPath = path.join(publicDir, folderName);
 const imageFiles = fs.existsSync(galleryPath)
-  ? fs.readdirSync(galleryPath).filter((file) => /\.(jpe?g|png|webp|gif|svg)$/i.test(file))
+  ? fs.readdirSync(galleryPath).filter((file: string) => /\.(jpe?g|png|webp|gif|svg)$/i.test(file))
   : [];
 const galleryImages = imageFiles.sort();
 const workDefinitions = [
@@ -32,7 +33,7 @@ const recommendationWorks = workDefinitions
   .map(([title, slug, folder]) => {
     const folderPath = path.join(publicDir, folder);
     const files = fs.existsSync(folderPath)
-      ? fs.readdirSync(folderPath).filter((file) => /\.(jpe?g|png|webp|gif|svg)$/i.test(file))
+      ? fs.readdirSync(folderPath).filter((file: string) => /\.(jpe?g|png|webp|gif|svg)$/i.test(file))
       : [];
     if (!files.length) return null;
     const image = files[Math.floor(Math.random() * files.length)];
@@ -73,13 +74,13 @@ try {
     
     {galleryImages.length > 0 ? (
       <div class="portfolio-gallery-grid mt-10">
-        {galleryImages.map((image) => (
+        {galleryImages.map((image: string) => (
           <article class="mb-6 inline-block w-full break-inside-avoid overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-lg shadow-slate-900/10">
-            <a href={imageUrl(image)} data-gallery-image data-gallery-index={galleryImages.indexOf(image)} class="block cursor-pointer">
+            <a href={imageUrl(image)} data-gallery-image data-gallery-index={galleryImages.indexOf(image)} class="block cursor-pointer" aria-label={`View ${imageAlt}`}>
               <img
                 class="w-full h-auto bg-slate-100 transition duration-300 hover:scale-[1.01]"
                 src={imageUrl(image)}
-                alt={image.replace(/[-_]/g, ' ').replace(/\.[^.]+$/, '')}
+                alt={imageAlt}
               />
             </a>
           </article>
@@ -94,7 +95,7 @@ try {
 
   <div class="portfolio-lightbox" data-portfolio-lightbox hidden>
     <div class="portfolio-lightbox-backdrop" data-lightbox-close></div>
-    <div class="portfolio-lightbox-panel" role="dialog" aria-modal="true" aria-label={`${folderName} image viewer`}>
+    <div class="portfolio-lightbox-panel" role="dialog" aria-modal="true" aria-label={`${folderName} image viewer`} tabindex="-1">
       <div class="portfolio-lightbox-toolbar">
         <span class="portfolio-lightbox-count" data-lightbox-count aria-live="polite"></span>
         <button type="button" class="portfolio-lightbox-button" data-lightbox-close aria-label="Close image viewer" title="Close image viewer">
@@ -102,6 +103,9 @@ try {
         </button>
       </div>
       <div class="portfolio-lightbox-stage">
+        <div class="portfolio-lightbox-loading" data-lightbox-loading role="status" aria-live="polite" aria-label="Loading image">
+          <span class="portfolio-lightbox-spinner" aria-hidden="true"></span>
+        </div>
         <button type="button" class="portfolio-lightbox-button portfolio-lightbox-nav" data-lightbox-previous aria-label="Show previous image" title="Previous image">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
         </button>
@@ -145,6 +149,8 @@ try {
       const workSlug = folderName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       const grid = root.querySelector('.portfolio-gallery-grid');
       const emptyState = root.querySelector('.portfolio-gallery-empty');
+      const dialogPanel = root.querySelector('.portfolio-lightbox-panel');
+      const galleryAlt = `A handcrafted ${folderName.toLowerCase()} woodworking piece by DigitalWoodworker`;
       if (!folderName || !grid) return;
 
       const renderImages = (images) => {
@@ -159,10 +165,11 @@ try {
           anchor.dataset.galleryImage = '';
           anchor.dataset.galleryIndex = String(images.indexOf(image));
           anchor.className = 'block cursor-pointer';
+          anchor.setAttribute('aria-label', `View ${galleryAlt}`);
           const img = document.createElement('img');
           img.className = 'w-full h-auto bg-slate-100 transition duration-300 hover:scale-[1.01]';
           img.src = imageUrl(image);
-          img.alt = image.replace(/[-_]/g, ' ').replace(/\.[^.]+$/, '');
+          img.alt = galleryAlt;
           img.loading = 'lazy';
           anchor.appendChild(img);
           article.appendChild(anchor);
@@ -174,6 +181,7 @@ try {
       const lightboxImage = root.querySelector('[data-lightbox-image]');
       const lightboxCount = root.querySelector('[data-lightbox-count]');
       const lightboxStage = root.querySelector('.portfolio-lightbox-stage');
+      const loadingIndicator = root.querySelector('[data-lightbox-loading]');
       const previousButton = root.querySelector('[data-lightbox-previous]');
       const nextButton = root.querySelector('[data-lightbox-next]');
       const zoomOutButton = root.querySelector('[data-lightbox-zoom-out]');
@@ -196,6 +204,7 @@ try {
       let dragStartPanX = 0;
       let dragStartPanY = 0;
       let isDragging = false;
+      let opener = null;
 
       const trackEvent = (name, title) => {
         if (typeof window.goatcounter?.count !== 'function') return;
@@ -279,6 +288,21 @@ try {
         lightboxStage.classList.toggle('portfolio-lightbox-is-zoomed', zoomScale > 1);
       };
 
+      const preloadNextImage = () => {
+        const nextImage = activeImages[activeIndex + 1];
+        if (!nextImage) return;
+        const image = new Image();
+        image.src = nextImage.src;
+      };
+
+      const finishImageLoad = () => {
+        applyImageTransform();
+        lightboxImage.classList.remove('portfolio-lightbox-image-changing');
+        if (loadingIndicator) loadingIndicator.hidden = true;
+        lightboxStage?.removeAttribute('aria-busy');
+        preloadNextImage();
+      };
+
       const showImage = (index, showEndState = false) => {
         if (!lightbox || !lightboxImage || !activeImages.length) return;
         activeIndex = Math.max(0, Math.min(index, activeImages.length - 1));
@@ -287,9 +311,14 @@ try {
         zoomScale = 1;
         panX = 0;
         panY = 0;
+        if (loadingIndicator) loadingIndicator.hidden = false;
+        lightboxStage?.setAttribute('aria-busy', 'true');
+        lightboxImage.classList.add('portfolio-lightbox-image-changing');
+        lightboxImage.onload = finishImageLoad;
         lightboxImage.src = image.src;
         lightboxImage.alt = image.alt;
         applyImageTransform();
+        if (lightboxImage.complete) finishImageLoad();
         if (lightboxCount) lightboxCount.textContent = `${activeIndex + 1} / ${activeImages.length}`;
         if (previousButton) previousButton.hidden = activeImages.length < 2;
         if (nextButton) nextButton.hidden = activeImages.length < 2;
@@ -334,7 +363,7 @@ try {
         if (!lightbox) return;
         activeImages = Array.from(root.querySelectorAll('[data-gallery-image]')).map((anchor) => ({
           src: anchor.href,
-          alt: anchor.querySelector('img')?.alt || '',
+          alt: anchor.querySelector('img')?.alt || galleryAlt,
         }));
         if (!activeImages.length) return;
         markCurrentWorkVisited();
@@ -344,6 +373,7 @@ try {
         lightbox.hidden = false;
         trackEvent('open', `Opened ${folderName} image ${index + 1}`);
         showImage(index, !centerEndState);
+        opener = root.querySelector(`[data-gallery-image][data-gallery-index="${index}"]`);
         closeButtons[1]?.focus();
       };
 
@@ -352,6 +382,8 @@ try {
         lightbox.hidden = true;
         document.body.style.overflow = previousOverflow;
         trackEvent('close', `Closed ${folderName} image viewer`);
+        opener?.focus();
+        opener = null;
       };
 
       grid.addEventListener('click', (event) => {
@@ -411,6 +443,25 @@ try {
       document.addEventListener('keydown', (event) => {
         if (!lightbox || lightbox.hidden) return;
         if (event.key === 'Escape') closeLightbox();
+        if (event.key === 'Tab') {
+          const focusable = Array.from(lightbox.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])'))
+            .filter((element) => !element.hasAttribute('disabled') && element.getClientRects().length > 0);
+          if (!focusable.length) {
+            event.preventDefault();
+            dialogPanel?.focus();
+            return;
+          }
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
+          return;
+        }
         if (event.key === 'ArrowLeft') {
           showPreviousImage();
         }
@@ -604,6 +655,35 @@ try {
     touch-action: pan-y;
   }
 
+  .portfolio-lightbox-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    background: rgb(2 6 23 / 24%);
+    pointer-events: none;
+  }
+
+  .portfolio-lightbox-loading[hidden] {
+    display: none;
+  }
+
+  .portfolio-lightbox-spinner {
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 3px solid rgb(255 255 255 / 30%);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: portfolio-lightbox-spin 700ms linear infinite;
+  }
+
+  @keyframes portfolio-lightbox-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
   .portfolio-lightbox-stage.portfolio-lightbox-is-zoomed {
     touch-action: none;
     user-select: none;
@@ -619,8 +699,13 @@ try {
     object-fit: contain;
     border-radius: inherit;
     cursor: default;
+    opacity: 1;
     transform-origin: center center;
-    transition: transform 180ms ease;
+    transition: opacity 180ms ease, transform 260ms ease;
+  }
+
+  .portfolio-lightbox-image.portfolio-lightbox-image-changing {
+    opacity: 0.2;
   }
 
   .portfolio-lightbox-is-zoomed .portfolio-lightbox-image {
@@ -771,6 +856,13 @@ try {
     border-color: rgb(255 255 255 / 60%);
     background: rgb(51 65 85 / 95%);
     outline: none;
+  }
+
+  .portfolio-gallery-grid [data-gallery-image]:focus-visible,
+  .portfolio-lightbox-recommendation:focus-visible,
+  .portfolio-lightbox-panel:focus-visible {
+    outline: 3px solid rgb(251 191 36);
+    outline-offset: 3px;
   }
 
   .portfolio-lightbox-button svg {

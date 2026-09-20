@@ -279,7 +279,7 @@ try {
         lightboxStage.classList.toggle('portfolio-lightbox-is-zoomed', zoomScale > 1);
       };
 
-      const showImage = (index, showEndState = true) => {
+      const showImage = (index, showEndState = false) => {
         if (!lightbox || !lightboxImage || !activeImages.length) return;
         activeIndex = Math.max(0, Math.min(index, activeImages.length - 1));
         if (activeIndex !== activeImages.length - 1) centerEndState = false;
@@ -314,7 +314,7 @@ try {
       const showNextImage = () => {
         if (activeIndex < activeImages.length - 1) {
           trackEvent('next', `Next image in ${folderName}`);
-          showImage(activeIndex + 1);
+          showImage(activeIndex + 1, false);
         } else {
           trackEvent('end', `Reached end of ${folderName}`);
           showEndOfGallery();
@@ -513,8 +513,9 @@ try {
   .portfolio-lightbox-centered .portfolio-lightbox-end {
     position: absolute;
     right: 1rem;
-    bottom: 1rem;
     left: 1rem;
+    top: 50%;
+    bottom: auto;
     z-index: 2;
     max-height: calc(100vh - 8rem);
     overflow-y: auto;
@@ -523,6 +524,7 @@ try {
     background: rgb(2 6 23 / 82%);
     padding: 1rem;
     backdrop-filter: blur(12px);
+    transform: translateY(-50%);
   }
 
   .portfolio-lightbox-toolbar {
@@ -635,8 +637,19 @@ try {
   }
 
   .portfolio-lightbox-end {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    left: 1rem;
+    z-index: 2;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    border: 1px solid rgb(255 255 255 / 18%);
+    border-radius: 1.25rem;
+    background: rgb(2 6 23 / 82%);
     padding: 1rem 0 0.5rem;
     text-align: center;
+    transform: translateY(-50%);
   }
 
   .portfolio-lightbox-end-title {
